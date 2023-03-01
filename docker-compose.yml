@@ -1,0 +1,25 @@
+version: '1.0'
+services:
+  back:
+    build: ./backend
+    image: my-backend-image
+    container_name: backend-container
+    ports:
+      - 8888:8888
+    networks:
+      - frontback
+
+  front:
+    build: ./frontend
+    image: my-frontend-image
+    container_name: frontend-container
+    ports:
+      - 3000:3000
+    depends_on:
+      - back
+    networks:
+      - frontback
+
+networks:
+  frontback:
+    driver: bridge
