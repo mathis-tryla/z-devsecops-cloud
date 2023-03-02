@@ -1,0 +1,21 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      frontend-working-directory: ./frontend
+      backend-working-directory: ./backend
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build the Docker image for VueJS frontend
+      run: docker build ${{env.frontend-working-directory}} --file ${{env.frontend-working-directory}}/Dockerfile -t my-frontend-image:$(date +%s)
+    - name: Build the Docker image for Spring Boot backend
+      run: docker build ${{env.backend-working-directory}} --file ${{env.backend-working-directory}}/Dockerfile -t my-backend-image:$(date +%s)
