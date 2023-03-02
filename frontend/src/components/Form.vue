@@ -9,9 +9,3 @@
         <button type="submit">Login</button>
     </form>
 </template>
-
-<script>
-export default {
-  name: 'Form'
-}
-</script>

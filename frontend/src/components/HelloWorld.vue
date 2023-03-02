@@ -1,21 +1,20 @@
-<template>
-    <h1>{{ msg }}</h1>
-</template>
-
 <script>
+import axios from 'axios';
+import { reactive } from 'vue'
+
 export default {
-  name: 'HelloWorld',
-  data() {
+  setup() {
+    const state = reactive({ msg: '' })
+    axios
+        .get(`http://localhost:3000/api/hello`)
+        .then((res) => state.msg = res.data)
     return {
-        msg: ''
+      state
     }
-  },
-  mounted() {
-    fetch('/hello')
-    .then(res => res.text())
-    .then(data => {
-        this.msg = data;
-    })
   }
 }
 </script>
+
+<template>
+    <h1>{{ state.msg }}</h1>
+</template>
