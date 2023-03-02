@@ -5,7 +5,7 @@ services:
     image: my-backend-image
     container_name: backend-container
     ports:
-      - 8888:8888
+      - 8080:8080
     networks:
       - frontback
 

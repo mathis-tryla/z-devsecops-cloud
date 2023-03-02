@@ -10,6 +10,6 @@ public class Controller {
 
     @GetMapping("/hello")
     public String hello(){
-        return "spring boot vuejs app";
+        return "Hello spring boot vuejs app!";
     }
 }
