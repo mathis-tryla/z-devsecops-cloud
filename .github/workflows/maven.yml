@@ -21,7 +21,10 @@ jobs:
         cache: maven
     - name: Build with Maven
       run: mvn -B --update-snapshots package  --file ${{env.working-directory}}/pom.xml
-    - name: Generate .JAR
-      run: mvn clean install -DskipTests
-    - name: Run .JAR file
-      run: java -jar ${{env.working-directory}}/target/app.jar
+    - name: Setup staging environment
+      run: mkdir staging && cp target/*.jar staging
+    - uses: actions/upload-artifact@v1
+    - name: Upload artifact
+      with:
+        name: Package
+        path: staging
