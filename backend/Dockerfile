@@ -1,11 +1,6 @@
-ARG JAR_FILE="default"
-
 FROM eclipse-temurin:19-jre-ubi9-minimal
 
-ARG JAR_FILE
-
-#ADD target/*.jar /app.jar
-ADD JAR_FILE /app.jar
+ADD target/*.jar /app.jar
 
 EXPOSE 8080
 
