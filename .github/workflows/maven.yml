@@ -22,7 +22,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B --update-snapshots package  --file ${{env.working-directory}}/pom.xml
     - name: Setup staging environment
-      run: mkdir staging && cp target/*.jar staging
+      run: mkdir staging && cp ${{env.working-directory}}/target/*.jar staging
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
