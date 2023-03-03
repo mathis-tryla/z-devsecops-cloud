@@ -5,7 +5,7 @@ FROM eclipse-temurin:19-jre-ubi9-minimal
 ARG JAR_FILE
 
 #ADD target/*.jar /app.jar
-ADD ${ JAR_FILE } /app.jar
+ADD JAR_FILE /app.jar
 
 EXPOSE 8080
 
