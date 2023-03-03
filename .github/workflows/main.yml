@@ -35,3 +35,11 @@ jobs:
       run: docker build ${{env.frontend_working_directory}} --file ${{env.frontend_working_directory}}/Dockerfile -t my-frontend-image:$(date +%s)
     - name: Build the Docker image for Spring Boot backend
       run: docker build ${{env.backend_working_directory}} --file ${{env.backend_working_directory}}/Dockerfile -t my-backend-image:$(date +%s)
+
+    - name: Cache local Maven repository
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          ${{ runner.os }}-maven-java-19-
