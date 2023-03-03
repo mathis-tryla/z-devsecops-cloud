@@ -1,6 +1,7 @@
 FROM eclipse-temurin:19-jre-ubi9-minimal
 
 ADD target/*.jar /app.jar
+ARG jar_file="/app.jar"
 
 EXPOSE 8080
 
