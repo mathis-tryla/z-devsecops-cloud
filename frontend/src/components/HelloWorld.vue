@@ -6,7 +6,7 @@ export default {
   setup() {
     const state = reactive({ msg: '' })
     axios
-        .get(`http://localhost:3000/api/hello`)
+        .get(`/api/hello`)
         .then((res) => state.msg = res.data)
     return {
       state
