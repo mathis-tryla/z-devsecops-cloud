@@ -16,5 +16,5 @@ export default {
 </script>
 
 <template>
-    <h1>{{ state.msg }}</h1>
+    <h1 style="color: white">{{ state.msg }}</h1>
 </template>
