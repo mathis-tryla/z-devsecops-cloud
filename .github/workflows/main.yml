@@ -44,7 +44,7 @@ jobs:
         path: ${{env.BACKEND}}/target
 
     - name: run test
-      run: ls /
+      run: ls .
 
     - name: Checkout repository
       uses: actions/checkout@v3
@@ -82,4 +82,4 @@ jobs:
           ghcr.io/${{ github.repository }}/backend:latest
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
-          JAR=${{github.workspace}}/app.jar
+          JAR=${{github.workspace}}/backend/app.jar
