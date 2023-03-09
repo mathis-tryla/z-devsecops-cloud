@@ -3,7 +3,7 @@ FROM eclipse-temurin:19-jre-ubi9-minimal
 #ADD target/*.jar /app.jar
 ARG JAR
 
-COPY ${JAR} /app.jar
+ADD ${JAR} /app.jar
 
 ENV VAR_JAR=$JAR
 
