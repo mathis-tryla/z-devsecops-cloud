@@ -3,7 +3,7 @@ import axios from 'axios';
 import { reactive } from 'vue'
 
 export default {
-  setup() {
+  data() {
     const state = reactive({ msg: '' })
     axios
         .get(`/api/hello`)
@@ -16,5 +16,12 @@ export default {
 </script>
 
 <template>
-    <h1 style="color: white">{{ state.msg }}</h1>
+    <h1>{{ state.msg }}</h1>
 </template>
+
+<style>
+h1 {
+    color: black;
+    margin-right: 20%;
+}
+</style>

@@ -1,2 +1,5 @@
-dev/mathis/javaspringboot/controller/Controller.class
-dev/mathis/javaspringboot/JavaSpringBootVuejsApplication.class
+com/dev/mathis/javavuejsapp/service/UserService.class
+com/dev/mathis/javavuejsapp/JavavuejsappApplication.class
+com/dev/mathis/javavuejsapp/model/User.class
+com/dev/mathis/javavuejsapp/controller/UserController.class
+com/dev/mathis/javavuejsapp/repository/UserRepository.class

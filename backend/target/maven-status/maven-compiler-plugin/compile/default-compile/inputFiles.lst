@@ -1,2 +1,5 @@
-/Users/zenika/Stage/z-devsecops-cloud/backend/src/main/java/dev/mathis/javaspringboot/controller/Controller.java
-/Users/zenika/Stage/z-devsecops-cloud/backend/src/main/java/dev/mathis/javaspringboot/JavaSpringBootVuejsApplication.java
+/Users/zenika/Stage/javavuejsapp/backend/src/main/java/com/dev/mathis/javavuejsapp/model/User.java
+/Users/zenika/Stage/javavuejsapp/backend/src/main/java/com/dev/mathis/javavuejsapp/service/UserService.java
+/Users/zenika/Stage/javavuejsapp/backend/src/main/java/com/dev/mathis/javavuejsapp/controller/UserController.java
+/Users/zenika/Stage/javavuejsapp/backend/src/main/java/com/dev/mathis/javavuejsapp/JavavuejsappApplication.java
+/Users/zenika/Stage/javavuejsapp/backend/src/main/java/com/dev/mathis/javavuejsapp/repository/UserRepository.java

@@ -1,34 +1,71 @@
 <template>
-    <div class="container">
-        <form action="/login">
+    <div class="form-div">
+        <h1 :class="{ 'sign-in': !clicked, 'sign-up': clicked }">{{ clicked ? 'Sign up' : 'Sign in' }}</h1>
+        <form>
             <div class="row">
                 <div class="col-25">
                     <label for="username">Username</label>
                 </div>
                 <div class="col-75">
-                    <input type="text" id="username" name="username" placeholder="Your username">
+                    <input type="text" id="username" name="username" placeholder="Your username" required>
                 </div>
             </div>
             <div class="row">
                 <div class="col-25">
-                    <label for="password">Last Name</label>
+                    <label for="password">Password</label>
                 </div>
                 <div class="col-75">
                     <input type="text" id="password" name="password" placeholder="Your password">
                 </div>
             </div>
-            <div class="row">
-                <input type="submit" value="Submit">
+            <div class="row" style="margin-top:10%">
+                <div class="col-50">
+                    <p class="create-my-account-or-log-in" @click="clicked = !clicked">{{ clicked ? 'Log in' : 'Create my account' }}</p>
+                </div>
+                <div class="col-50">
+                    <input type="submit" value="Submit">
+                </div>
             </div>
         </form>
     </div>
 </template>
 
+<script>
+import { reactive } from 'vue'
+
+export default {
+  data() {
+    return {
+      clicked: false
+    }
+  }
+}
+</script>
+
 <style>
-.container{
-    width: 500px;
-    height: 200px;
-    margin: 0 auto;
+
+
+h1 {
+   color: black;
+   margin-bottom: 5%;
+}
+
+.sign-in {
+  color: blue;
+}
+
+.sign-up {
+  color: green;
+}
+
+.create-my-account-or-log-in {
+    color: gray;
+    text-decoration: underline;
+    float: left;
+}
+
+.create-my-account-or-log-in:hover {
+    cursor: pointer;
 }
 
 /* Style inputs, select elements and textareas */
@@ -60,7 +97,7 @@ input[type=submit] {
 }
 
 /* Style the container */
-.container {
+.form-div {
   border-radius: 5px;
   background-color: #f2f2f2;
   padding: 20px;
