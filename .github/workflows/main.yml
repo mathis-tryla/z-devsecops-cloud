@@ -40,8 +40,8 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
-        name: Package
-        path: ${{env.BACKEND}}/target
+        name: app.jar
+        path: ${{env.BACKEND}}/target/app.jar
 
     - name: Checkout repository
       uses: actions/checkout@v3
