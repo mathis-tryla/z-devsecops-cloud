@@ -82,4 +82,4 @@ jobs:
           ghcr.io/${{ github.repository }}/backend:latest
         labels: ${{ steps.meta.outputs.labels }}
         build-args: |
-          JAR=${{env.BACKEND}}/target/*.jar
+          JAR=target/*.jar
