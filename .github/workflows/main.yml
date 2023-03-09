@@ -41,7 +41,7 @@ jobs:
       uses: actions/upload-artifact@v1
       with:
         name: app.jar
-        path: ${{env.BACKEND}}/target/app.jar
+        path: ${{env.BACKEND}}/target
 
     - name: run test
       run: ls /
