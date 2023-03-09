@@ -44,7 +44,7 @@ jobs:
         path: ${{env.BACKEND}}/target
 
     - name: run test
-      run: ls .
+      run: ls ./backend/target
 
     - name: Checkout repository
       uses: actions/checkout@v3
