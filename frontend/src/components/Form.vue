@@ -1,50 +1,69 @@
 <template>
     <div class="form-div">
         <h1 :class="{ 'sign-in': !clicked, 'sign-up': clicked }">{{ clicked ? 'Sign up' : 'Sign in' }}</h1>
+        <!--<form v-on:submit.prevent="createUser">-->
         <form>
-            <div class="row">
-                <div class="col-25">
-                    <label for="username">Username</label>
-                </div>
-                <div class="col-75">
-                    <input type="text" id="username" name="username" placeholder="Your username" required>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-25">
-                    <label for="password">Password</label>
-                </div>
-                <div class="col-75">
-                    <input type="text" id="password" name="password" placeholder="Your password">
-                </div>
-            </div>
-            <div class="row" style="margin-top:10%">
-                <div class="col-50">
-                    <p class="create-my-account-or-log-in" @click="clicked = !clicked">{{ clicked ? 'Log in' : 'Create my account' }}</p>
-                </div>
-                <div class="col-50">
-                    <input type="submit" value="Submit">
-                </div>
-            </div>
+          <div class="row">
+              <div class="col-25">
+                  <label for="username">Username</label>
+              </div>
+              <div class="col-75">
+                  <input type="text" id="username" name="username" placeholder="Your username" v-model="username" required>
+              </div>
+          </div>
+          <div class="row">
+              <div class="col-25">
+                  <label for="password">Password</label>
+              </div>
+              <div class="col-75">
+                  <input type="text" id="password" name="password" placeholder="Your password" v-model="pwd">
+              </div>
+          </div>
+          <div class="row" style="margin-top:10%">
+              <div class="col-50">
+                  <p class="create-my-account-or-log-in" @click="clicked = !clicked">{{ clicked ? 'Log in' : 'Create my account' }}</p>
+              </div>
+              <div class="col-50">
+                  <button v-if="clicked" @click="createUser">Create my account</button>
+                  <button v-else @click="signIn">Submit</button>
+              </div>
+          </div>
         </form>
+        <div></div>
     </div>
 </template>
 
 <script>
-import { reactive } from 'vue'
+import axios from 'axios';
+
+const USER_API_BASE_URL = 'http://localhost:8080/api/users';
 
 export default {
   data() {
     return {
-      clicked: false
+      clicked: false, 
+      username: '', 
+      pwd: ''
     }
+  },
+  methods: {
+    createUser: function(){
+      return axios.post(USER_API_BASE_URL, 
+      {
+        username: this.username,
+        password: this.pwd
+      });
+    },
+    signIn: function(){}
+  },
+  created(){
+    this.createUser()
+    this.signIn()
   }
 }
 </script>
 
 <style>
-
-
 h1 {
    color: black;
    margin-bottom: 5%;
@@ -86,7 +105,7 @@ label {
 }
 
 /* Style the submit button */
-input[type=submit] {
+button {
   background-color: #04AA6D;
   color: white;
   padding: 12px 20px;
