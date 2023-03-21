@@ -63,7 +63,7 @@ jobs:
         file: ${{env.FRONTEND}}/Dockerfile
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}/frontend:latest
+          ghcr.io/${{ github.repository }}/frontend
         labels: ${{ steps.meta.outputs.labels }}
 
     - name: Build and push Docker Backend image
@@ -73,5 +73,5 @@ jobs:
         file: ${{env.BACKEND}}/Dockerfile
         push: true
         tags: |
-          ghcr.io/${{ github.repository }}/backend:latest
+          ghcr.io/${{ github.repository }}/backend
         labels: ${{ steps.meta.outputs.labels }}
