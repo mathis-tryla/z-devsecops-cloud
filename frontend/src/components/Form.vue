@@ -1,8 +1,7 @@
 <template>
     <div class="form-div">
-        <h1 :class="{ 'sign-in': !clicked, 'sign-up': clicked }">{{ clicked ? 'Sign up' : 'Sign in' }}</h1>
-        <!--<form v-on:submit.prevent="createUser">-->
         <form>
+          <h1 :class="{ 'sign-in': !clicked, 'sign-up': clicked }">{{ clicked ? 'Sign up' : 'Sign in' }}</h1>
           <div class="row">
               <div class="col-25">
                   <label for="username">Username</label>
@@ -16,7 +15,7 @@
                   <label for="password">Password</label>
               </div>
               <div class="col-75">
-                  <input type="text" id="password" name="password" placeholder="Your password" v-model="pwd">
+                  <input type="text" id="password" name="password" placeholder="Your password" v-model="pwd" required>
               </div>
           </div>
           <div class="row" style="margin-top:10%">
@@ -24,12 +23,11 @@
                   <p class="create-my-account-or-log-in" @click="clicked = !clicked">{{ clicked ? 'Log in' : 'Create my account' }}</p>
               </div>
               <div class="col-50">
-                  <button v-if="clicked" @click="createUser">Create my account</button>
-                  <button v-else @click="signIn">Submit</button>
+                  <button v-if="clicked" @click="createUser" type="button">Create my account</button>
+                  <button v-else @click="signIn" type="button">Submit</button>
               </div>
           </div>
         </form>
-        <div></div>
     </div>
 </template>
 
@@ -47,6 +45,9 @@ export default {
     }
   },
   methods: {
+    getUsers: function(){
+      return axios.get(USER_API_BASE_URL);
+    },
     createUser: function(){
       return axios.post(USER_API_BASE_URL, 
       {
@@ -57,6 +58,7 @@ export default {
     signIn: function(){}
   },
   created(){
+    this.getUsers()
     this.createUser()
     this.signIn()
   }

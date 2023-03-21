@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.dev.mathis</groupId>
-	<artifactId>javavuejsapp</artifactId>
+	<artifactId>backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>javavuejsapp</name>
 	<description>Zenika internship Mathis Spring Boot + VueJS</description>

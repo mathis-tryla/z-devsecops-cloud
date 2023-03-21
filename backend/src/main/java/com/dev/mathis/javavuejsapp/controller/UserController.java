@@ -13,18 +13,12 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@EnableJpaRepositories
+@CrossOrigin(origins = "http://localhost:3000")
 public class UserController {
 
     @Autowired
     UserService userService;
 
-    /*public UserController() {
-    }
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }*/
 
     @GetMapping("/hello")
     public String hello(){
@@ -41,13 +35,13 @@ public class UserController {
         return userService.findUserByUsername(username);
     }
 
-    @PostMapping("/createUser")
+    @PostMapping("/users")
     User createUser(@RequestBody User newUser) {
         return userService.createUser(newUser);
     }
 
-    @DeleteMapping("/users/{username}")
+    /*@DeleteMapping("/users/{username}")
     void deleteUser(@PathVariable String username) {
         userService.deleteUserByUsername(username);
-    }
+    }*/
 }

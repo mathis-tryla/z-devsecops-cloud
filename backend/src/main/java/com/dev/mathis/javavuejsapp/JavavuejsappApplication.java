@@ -22,6 +22,7 @@ import javax.sql.DataSource;
 
 //@SpringBootApplication(exclude={H2ConsoleAutoConfiguration.class})
 @SpringBootApplication()
+@EnableJpaRepositories
 @EntityScan("com.dev.mathis.javavuejsapp.model")
 public class JavavuejsappApplication {
 
