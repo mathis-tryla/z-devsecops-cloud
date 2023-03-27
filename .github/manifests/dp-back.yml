@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deploy-back
+  namespace: env-intern
+  labels:
+    app: devsecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: devsecops
+  template:
+    metadata:
+      labels:
+        app: devsecops
+    spec:
+      containers:
+        - name: backend
+          image: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: api
+      #imagePullSecrets:
+      #  - name: ghcr

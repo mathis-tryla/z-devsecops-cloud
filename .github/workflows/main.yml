@@ -110,15 +110,14 @@ jobs:
           --tag "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest" \
           ${{ env.BACKEND }}
 
-    - name: Publish docker images to GCR
+    - name: Publish docker images to Google Artifact Registry
       run: |-
         docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" && \
         docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest"
 
-    #Deploy the Docker image to the GKE cluster
-    #- name: Deploy
-    #  run: |-
-    #    ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
-    #    ./kustomize build . | kubectl apply -f -
-    #    kubectl apply -f ${{ github.workspace }}/.github/manifests/deployment.yaml
-    #    kubectl get services -o wide
+    - name: Deploy Docker image to the GKE cluster
+      run: |-
+        ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+        ./kustomize build . | kubectl apply -f -
+        kubectl apply -f ${{ github.workspace }}/.github/manifests/deployment.yaml
+        kubectl get services -o wide
