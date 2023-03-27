@@ -122,6 +122,4 @@ jobs:
         kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
         kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
         kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-        kubectl rollout status deployment/my-deploy-front
-        kubectl rollout status deployment/my-deploy-back
         kubectl get services -o wide
