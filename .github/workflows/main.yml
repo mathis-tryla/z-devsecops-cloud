@@ -115,11 +115,12 @@ jobs:
         docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" && \
         docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest"
 
-    - name: Deploy Docker image to the GKE cluster
+    - name: Deploy docker images to the GKE cluster
       env:
         MANIFESTS: .github/manifests
       run: |-
-        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/*.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
         kubectl rollout status deployment/my-deploy-front
         kubectl rollout status deployment/my-deploy-back
         kubectl get services -o wide
