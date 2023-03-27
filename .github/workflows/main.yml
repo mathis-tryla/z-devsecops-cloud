@@ -100,19 +100,19 @@ jobs:
     - name: Build frontend docker image
       run: |-
         docker build \
-          --tag "gcr.io/$PROJECT_ID/frontend:latest" \
+          --tag "eu.gcr.io/$PROJECT_ID/frontend:latest" \
           ${{ env.FRONTEND }}
 
     - name: Build backend docker image
       run: |-
         docker build \
-          --tag "gcr.io/$PROJECT_ID/backend:latest" \
+          --tag "eu.gcr.io/$PROJECT_ID/backend:latest" \
           ${{ env.BACKEND }}
 
     - name: Publish docker images to GCR
       run: |-
-        docker push "gcr.io/$PROJECT_ID/frontend:latest" && \
-        docker push "gcr.io/$PROJECT_ID/backend:latest"
+        docker push "eu.gcr.io/$PROJECT_ID/frontend:latest" && \
+        docker push "eu.gcr.io/$PROJECT_ID/backend:latest"
 
     #Deploy the Docker image to the GKE cluster
     #- name: Deploy
