@@ -11,7 +11,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: z-devsecops-cluster
-  GKE_ZONE: europe-west9-a
+  GKE_ZONE: europe-west1-b
     
 jobs:
   build-and-push-images:
@@ -88,7 +88,7 @@ jobs:
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
     - run: |-
-        gcloud --quiet auth configure-docker eu.gcr.io
+        gcloud --quiet auth configure-docker
 
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
