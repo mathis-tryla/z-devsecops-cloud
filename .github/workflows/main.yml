@@ -88,7 +88,7 @@ jobs:
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
     - run: |-
-        gcloud --quiet auth configure-docker europe-west9-docker.pkg.dev
+        gcloud --quiet auth configure-docker eu.gcr.io
 
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
@@ -100,21 +100,21 @@ jobs:
     - name: Build frontend docker image
       run: |-
         docker build \
-          --tag "europe-west9-docker.pkg.dev/$PROJECT_ID/frontend:latest" \
+          --tag "eu.gcr.io/$PROJECT_ID/frontend:latest" \
           ${{ env.FRONTEND }}
 
     - name: Build backend docker image
       run: |-
         docker build \
-          --tag "europe-west9-docker.pkg.dev/$PROJECT_ID/backend:latest" \
+          --tag "eu.gcr.io/$PROJECT_ID/backend:latest" \
           ${{ env.BACKEND }}
 
     - name: Publish docker images to GCR
       run: |-
-        docker push "europe-west9-docker.pkg.dev/$PROJECT_ID/frontend:latest" && \
-        docker push "europe-west9-docker.pkg.dev/$PROJECT_ID/backend:latest"
+        docker push "eu.gcr.io/$PROJECT_ID/frontend:latest" && \
+        docker push "eu.gcr.io/$PROJECT_ID/backend:latest"
 
-    # Deploy the Docker image to the GKE cluster
+    #Deploy the Docker image to the GKE cluster
     #- name: Deploy
     #  run: |-
     #    ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
