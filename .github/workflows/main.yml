@@ -8,6 +8,7 @@ env:
   FRONTEND: ./frontend
   BACKEND: ./backend
   REGISTRY: ghcr.io
+  ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   IMAGE_NAME: ${{ github.repository }}
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GKE_CLUSTER: z-devsecops-cluster
@@ -100,19 +101,19 @@ jobs:
     - name: Build frontend docker image
       run: |-
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/frontend:latest" \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" \
           ${{ env.FRONTEND }}
 
     - name: Build backend docker image
       run: |-
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/backend:latest" \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest" \
           ${{ env.BACKEND }}
 
     - name: Publish docker images to GCR
       run: |-
-        docker push "eu.gcr.io/$PROJECT_ID/frontend:latest" && \
-        docker push "eu.gcr.io/$PROJECT_ID/backend:latest"
+        docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" && \
+        docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest"
 
     #Deploy the Docker image to the GKE cluster
     #- name: Deploy
