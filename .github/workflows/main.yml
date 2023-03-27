@@ -9,6 +9,9 @@ env:
   BACKEND: ./backend
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  GKE_CLUSTER: z-devsecops-cluster
+  GKE_ZONE: europe-west9-a
     
 jobs:
   build-and-push-images:
@@ -35,43 +38,86 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn -B --update-snapshots package --file ${{env.BACKEND}}/pom.xml
+      run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
     - name: Upload artifact
       uses: actions/upload-artifact@v1
       with:
         name: app.jar
-        path: ${{env.BACKEND}}/target
+        path: ${{ env.BACKEND }}/target
 
-    - name: Log in to the Container registry
-      uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    #- name: Log in to the Container registry
+    #  uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+    #  with:
+    #    registry: ${{ env.REGISTRY }}
+    #    username: ${{ github.actor }}
+    #    password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Extract metadata (tags, labels) for Docker
-      id: meta
-      uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    #- name: Extract metadata (tags, labels) for Docker
+    #  id: meta
+    #  uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+    #  with:
+    #    images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
-    - name: Build and push Docker Frontend image
-      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-      with:
-        context: ${{env.FRONTEND}}
-        file: ${{env.FRONTEND}}/Dockerfile
-        push: true
-        tags: |
-          ghcr.io/${{ github.repository }}/frontend
-        labels: ${{ steps.meta.outputs.labels }}
+    #- name: Build and push Docker Frontend image
+    #  uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+    #  with:
+    #    context: ${{ env.FRONTEND }}
+    #    file: ${{ env.FRONTEND }}/Dockerfile
+    #    push: true
+    #    tags: |
+    #      ghcr.io/${{ github.repository }}/frontend
+    #    labels: ${{ steps.meta.outputs.labels }}
 
-    - name: Build and push Docker Backend image
-      uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+    #- name: Build and push Docker Backend image
+    #  uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+    #  with:
+    #    context: ${{ env.BACKEND }}
+    #    file: ${{ env.BACKEND }}/Dockerfile
+    #    push: true
+    #    tags: |
+    #      ghcr.io/${{ github.repository }}/backend
+    #    labels: ${{ steps.meta.outputs.labels }}"""
+
+    - name: Setup gcloud CLI
+      uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
       with:
-        context: ${{env.BACKEND}}
-        file: ${{env.BACKEND}}/Dockerfile
-        push: true
-        tags: |
-          ghcr.io/${{ github.repository }}/backend
-        labels: ${{ steps.meta.outputs.labels }}
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+
+    # Configure Docker to use the gcloud command-line tool as a credential
+    # helper for authentication
+    - run: |-
+        gcloud --quiet auth configure-docker
+
+    - name: Get the GKE credentials
+      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
+
+    - name: Build frontend docker image
+      run: |-
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/frontend:latest" \
+          ${{ env.FRONTEND }}
+
+    - name: Build backend docker image
+      run: |-
+        docker build \
+          --tag "gcr.io/$PROJECT_ID/backend:latest" \
+          ${{ env.BACKEND }}
+
+    - name: Publish docker images to GCR
+      run: |-
+        docker push "gcr.io/$PROJECT_ID/frontend:latest" && \
+        docker push "gcr.io/$PROJECT_ID/backend:latest"
+
+    # Deploy the Docker image to the GKE cluster
+    #- name: Deploy
+    #  run: |-
+    #    ./kustomize edit set image gcr.io/PROJECT_ID/IMAGE:TAG=gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
+    #    ./kustomize build . | kubectl apply -f -
+    #    kubectl apply -f ${{ github.workspace }}/.github/manifests/deployment.yaml
+    #    kubectl get services -o wide

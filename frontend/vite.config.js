@@ -17,6 +17,7 @@ export default defineConfig({
         '/api': {
             //target: 'http://back:8080',
             target: 'http://localhost:8080',
+            //target: 'http://' + import.meta.env.BASE_URL + ':8080',
             ws: true,
             changeOrigin: true
         }
