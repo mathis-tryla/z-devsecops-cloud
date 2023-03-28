@@ -41,53 +41,53 @@ jobs:
     - name: Build with Maven
       run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
-    #- name: Upload artifact
-    #  uses: actions/upload-artifact@v1
-    #  with:
-    #   name: app.jar
-    #    path: ${{ env.BACKEND }}/target
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+       name: app.jar
+       path: ${{ env.BACKEND }}/target
 
-    #- name: Setup gcloud CLI
-    #  uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
-    #  with:
-    #    service_account_key: ${{ secrets.GKE_SA_KEY }}
-    #    project_id: ${{ secrets.GKE_PROJECT }}
+    - name: Setup gcloud CLI
+      uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+      with:
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
 
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
-    #- run: |-
-    #    gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+    - run: |-
+        gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    #- name: Get the GKE credentials
-    #  uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
-    #  with:
-    #    cluster_name: ${{ env.GKE_CLUSTER }}
-    #    location: ${{ env.GKE_ZONE }}
-    #    credentials: ${{ secrets.GKE_SA_KEY }}
+    - name: Get the GKE credentials
+      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
 
-    #- name: Build frontend docker image
-    #  run: |-
-    #    docker build \
-    #      --tag "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" \
-    #      ${{ env.FRONTEND }}
+    - name: Build frontend docker image
+      run: |-
+        docker build \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+          ${{ env.FRONTEND }}
 
-    #- name: Build backend docker image
-    #  run: |-
-    #    docker build \
-    #      --tag "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest" \
-    #      ${{ env.BACKEND }}
+    - name: Build backend docker image
+      run: |-
+        docker build \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+          ${{ env.BACKEND }}
 
-    #- name: Publish docker images to Google Artifact Registry
-    #  run: |-
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/frontend:latest" && \
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/$PROJECT_ID/backend:latest"
+    - name: Publish docker images to Google Artifact Registry
+      run: |-
+        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
+        docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
 
-    #- name: Deploy docker images to the GKE cluster
-    #  env:
-    #    MANIFESTS: .github/manifests
-    #  run: |-
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
-    #    kubectl get all --namespace env-intern
+    - name: Deploy docker images to the GKE cluster
+      env:
+        MANIFESTS: .github/manifests
+      run: |-
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
+        kubectl get all --namespace env-intern
