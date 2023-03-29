@@ -5,6 +5,7 @@ metadata:
   namespace: env-intern
 spec:
   selector:
+    app: devsecops
     type: api
   ports:
     - name: http
