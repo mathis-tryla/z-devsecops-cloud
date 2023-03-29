@@ -10,6 +10,7 @@ spec:
   selector:
     matchLabels:
       app: devsecops
+      type: api
   template:
     metadata:
       labels:
