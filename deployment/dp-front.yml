@@ -23,7 +23,7 @@ spec:
           imagePullPolicy: Always
           env:
             - name: BASE_URL
-              value: api:8080
+              value: http://api:8080
           ports:
             - containerPort: 3000
               name: main
