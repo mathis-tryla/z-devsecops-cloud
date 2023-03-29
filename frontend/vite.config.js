@@ -16,8 +16,8 @@ export default defineConfig({
     proxy: {
         '/api': {
             //target: 'http://back:8080',
-            target: 'http://localhost:8080',
-            //target: 'http://' + import.meta.env.BASE_URL + ':8080',
+            //target: 'http://localhost:8080',
+            target: 'http://' + process.env.BASE_URL,
             ws: true,
             changeOrigin: true
         }
