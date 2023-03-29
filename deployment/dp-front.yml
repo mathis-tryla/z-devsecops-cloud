@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-deploy-front
+  name: frontend
   namespace: env-intern
   labels:
     app: devsecops
@@ -27,5 +27,3 @@ spec:
           ports:
             - containerPort: 3000
               name: main
-      #imagePullSecrets:
-      #  - name: ghcr
