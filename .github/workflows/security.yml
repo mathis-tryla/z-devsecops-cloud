@@ -6,9 +6,14 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Create .mvn directory
+        run: |-
+          cd ${{ github.workspace }}/backend &&
+          mvn -N io.takari:maven:wrapper
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --detection-depth=2 --all-projects
+          args: --detection-depth=3 --all-projects
