@@ -11,4 +11,4 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --detection-depth=2
+          args: --detection-depth=2 --all-projects
