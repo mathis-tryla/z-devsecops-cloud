@@ -11,9 +11,10 @@ spec:
     matchLabels:
       app: devsecops
   template:
-    #metadata:
-    #  labels:
-    #    app: devsecops
+    metadata:
+      labels:
+        app: devsecops
+        type: front
     spec:
       containers:
         - name: frontend
