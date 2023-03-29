@@ -7,9 +7,9 @@ spec:
   selector:
     app: devsecops
   ports:
-    - name: main
-      port: 3000
-      targetPort: 8080
-    - name: api
+    - name: http-frontend
+      port: 80
+      targetPort: 3000
+    - name: http-backend
       port: 8080
       targetPort: 8080
