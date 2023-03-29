@@ -6,6 +6,7 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      # SAST scanning
       - name: Create .mvn directory
         run: |-
           cd ${{ github.workspace }}/backend &&
@@ -18,3 +19,16 @@ jobs:
         with:
           args: --all-projects
           json: true
+
+      # Container images scanning
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'docker.io/my-organization/my-app:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
