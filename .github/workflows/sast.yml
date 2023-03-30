@@ -1,4 +1,4 @@
-name: Snyk for Maven
+name: SAST scanning
 on: push
 jobs:
   sast:
