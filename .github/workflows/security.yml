@@ -33,6 +33,7 @@ jobs:
           output: 'trivy-results-frontend.sarif'
         env:
           GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
 
       - name: Run Trivy vulnerability scanner for backend
         uses: aquasecurity/trivy-action@master
@@ -42,6 +43,7 @@ jobs:
           output: 'trivy-results-backend.sarif'
         env:
           GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
 
       - name: Upload Trivy scan results to GitHub Security tab (frontend)
         uses: github/codeql-action/upload-sarif@v2
