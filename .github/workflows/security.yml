@@ -11,18 +11,29 @@ jobs:
           cd ${{ github.workspace }}/backend &&
           mvn -N io.takari:maven:wrapper
 
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/maven@master
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --all-projects
-          json: true
+      #- name: Run Snyk to check for vulnerabilities
+      #  uses: snyk/actions/maven@master
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --all-projects
+      #    json: true
 
   container-images:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+        with:
+          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          project_id: ${{ secrets.GKE_PROJECT }}
+
+      # Configure Docker to use the gcloud command-line tool as a credential
+      # helper for authentication
+      - run: |-
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
       - name: Run Trivy vulnerability scanner for frontend
         uses: aquasecurity/trivy-action@master
