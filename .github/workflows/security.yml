@@ -11,13 +11,13 @@ jobs:
           cd ${{ github.workspace }}/backend &&
           mvn -N io.takari:maven:wrapper
 
-      #- name: Run Snyk to check for vulnerabilities
-      #  uses: snyk/actions/maven@master
-      #  env:
-      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      #  with:
-      #    args: --all-projects
-      #    json: true
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/maven@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --all-projects --json-file-output=sast.json
 
   container-images:
     runs-on: ubuntu-latest
