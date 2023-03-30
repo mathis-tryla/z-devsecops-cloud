@@ -22,19 +22,13 @@ jobs:
 
   container-images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
     steps:
       - uses: actions/checkout@master
-
-      - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
-        with:
-          service_account_key: ${{ secrets.GKE_SA_KEY }}
-          project_id: ${{ secrets.GKE_PROJECT }}
-
-      # Configure Docker to use the gcloud command-line tool as a credential
-      # helper for authentication
-      - run: |-
-          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
       - name: Run Trivy vulnerability scanner for frontend
         uses: aquasecurity/trivy-action@master
@@ -42,6 +36,9 @@ jobs:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
           format: 'sarif'
           output: 'trivy-results-frontend.sarif'
+        env:
+          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
 
       - name: Run Trivy vulnerability scanner for backend
         uses: aquasecurity/trivy-action@master
@@ -49,6 +46,9 @@ jobs:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
           format: 'sarif'
           output: 'trivy-results-backend.sarif'
+        env:
+          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
 
       - name: Upload Trivy scan results to GitHub Security tab (frontend)
         uses: github/codeql-action/upload-sarif@v2
