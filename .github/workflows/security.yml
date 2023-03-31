@@ -28,6 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+        with:
+          service_account_key: ${{ secrets.GKE_SA_KEY }}
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
       - name: Scan Frontend container image with Grafeas
         uses: GoogleCloudPlatform/github-actions/grafeas@master
         with:
