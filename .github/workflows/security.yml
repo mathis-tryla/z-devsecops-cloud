@@ -1,5 +1,7 @@
 name: Security
-on: push
+on:
+  push:
+    branches: [ "main" ]
 
 env:
   GCP_PROJECT_ID: z-devsecops-cloud
@@ -29,27 +31,37 @@ jobs:
       - uses: actions/checkout@master
 
       - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@v1.1.0
+        uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
         with:
           service_account_key: ${{ secrets.GKE_SA_KEY }}
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Scan Frontend container image with Grafeas
-        uses: GoogleCloudPlatform/github-actions/grafeas@master
-        with:
-          image-uri: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest
-          project-id: ${{ env.GCP_PROJECT_ID }}
-          grafeas-notes: '["vulnerability", "build-details"]'
+      - name: Run Trivy vulnerability scanner for frontend
+        uses: aquasecurity/trivy-action@master
         env:
-          GCP_PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
+        with:
+          image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
+          format: 'sarif'
+          output: 'trivy-results-frontend.sarif'
 
-      - name: Scan Backend container image with Grafeas
-        uses: GoogleCloudPlatform/github-actions/grafeas@master
-        with:
-          image-uri: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest
-          project-id: ${{ env.GCP_PROJECT_ID }}
-          grafeas-notes: '["vulnerability", "build-details"]'
+      - name: Run Trivy vulnerability scanner for backend
+        uses: aquasecurity/trivy-action@master
         env:
-          GCP_PROJECT_ID: ${{ env.GCP_PROJECT_ID }}
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          TRIVY_USERNAME: ""
+        with:
+          image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
+          format: 'sarif'
+          output: 'trivy-results-backend.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab (frontend)
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results-frontend.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab (backend)
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results-backend.sarif'
