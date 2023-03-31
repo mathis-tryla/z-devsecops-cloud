@@ -53,6 +53,8 @@ jobs:
         with:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
           scan-ref: ${{ github.workspace }}/frontend
+          format: 'json'
+          output: 'container-images-trivy-results-frontend'
 
       - name: Run Trivy vulnerability scanner for backend
         uses: aquasecurity/trivy-action@master
@@ -62,3 +64,5 @@ jobs:
         with:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
           scan-ref: ${{ github.workspace }}/backend
+          format: 'json'
+          output: 'container-images-trivy-results-backend'
