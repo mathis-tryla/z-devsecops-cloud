@@ -41,7 +41,9 @@ jobs:
       - run: |-
           gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-      - run: docker pull europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest
+      - run: |-
+          docker pull europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest &&
+          docker pull europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest
 
       - name: Run Trivy vulnerability scanner for frontend
         uses: aquasecurity/trivy-action@master
