@@ -39,7 +39,7 @@ jobs:
       - name: Run Trivy vulnerability scanner for frontend
         uses: aquasecurity/trivy-action@master
         env:
-          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
           TRIVY_USERNAME: ""
         with:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
@@ -49,7 +49,7 @@ jobs:
       - name: Run Trivy vulnerability scanner for backend
         uses: aquasecurity/trivy-action@master
         env:
-          GOOGLE_APPLICATION_CREDENTIAL: z-devsecops-cloud-b415539092c9.json
+          GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
           TRIVY_USERNAME: ""
         with:
           image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
