@@ -35,6 +35,28 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    # SAST
+    - name: Create .mvn directory
+      run: |-
+        cd ${{ github.workspace }}/backend &&
+        mvn -N io.takari:maven:wrapper
+
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/maven@master
+      # TODO: comment the line below in production
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --all-projects --json-file-output=sast.json
+
+    # UPLOAD SAST RESULTS
+    - name: Upload SAST snyk results
+      uses: actions/upload-artifact@v3
+      with:
+        name: sast.json
+        path: sast.json
+
     - name: Build with Maven
       run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
@@ -55,12 +77,12 @@ jobs:
     - run: |-
         gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    #- name: Get the GKE credentials
-    #  uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
-    #  with:
-    #    cluster_name: ${{ env.GKE_CLUSTER }}
-    #    location: ${{ env.GKE_ZONE }}
-    #    credentials: ${{ secrets.GKE_SA_KEY }}
+    - name: Get the GKE credentials
+      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
 
     - name: Build frontend docker image
       run: |-
@@ -74,64 +96,50 @@ jobs:
           --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
           ${{ env.BACKEND }}
 
-    # SAST
-    - name: Create .mvn directory
-      run: |-
-        cd ${{ github.workspace }}/backend &&
-        mvn -N io.takari:maven:wrapper
-
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/maven@master
-      continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --all-projects --json-file-output=sast.json
-
-    # UPLOAD SAST RESULTS
-    - name: Upload SAST snyk results
-      uses: actions/upload-artifact@v3
-      with:
-        name: sast.json
-        path: sast.json
-
-    # FRONTEND IMAGE SCANNING
-    - name: Run Trivy vulnerability scanner for frontend
-      uses: aquasecurity/trivy-action@master
+    - name: Run Trivy vulnerability scanner
       env:
         GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
-      with:
-        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
-        scan-ref: ${{ github.workspace }}/frontend
-        format: 'json'
-        output: 'frontend-image-trivy-results.json'
-
-    # BACKEND IMAGE SCANNING
-    - name: Run Trivy vulnerability scanner for backend
-      uses: aquasecurity/trivy-action@master
-      env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
-        TRIVY_USERNAME: ""
-      with:
-        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
-        scan-ref: ${{ github.workspace }}/backend
-        format: 'json'
-        output: 'backend-image-trivy-results.json'
+      steps:
+        - name: Frontend
+          uses: aquasecurity/trivy-action@master
+          with:
+            image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
+            scan-ref: ${{ github.workspace }}/frontend
+            format: 'json'
+            output: 'frontend-image-trivy-results.json'
+        - name: Backend
+          uses: aquasecurity/trivy-action@master
+          with:
+            image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
+            scan-ref: ${{ github.workspace }}/backend
+            format: 'json'
+            output: 'backend-image-trivy-results.json'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
-    - name: Upload frontend image trivy scanning results
-      uses: actions/upload-artifact@v3
-      with:
-        name: frontend-trivy-results.json
-        path: frontend-image-trivy-results.json
+    #- name: Upload frontend image trivy scanning results
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: frontend-trivy-results.json
+    #    path: frontend-image-trivy-results.json
 
     # UPLOAD BACKEND IMAGE SCANNING RESULTS
-    - name: Upload backend image trivy scanning results
-      uses: actions/upload-artifact@v3
-      with:
-        name: backend-trivy-results.json
-        path: backend-image-trivy-results.json
+    #- name: Upload backend image trivy scanning results
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: backend-trivy-results.json
+    #    path: backend-image-trivy-results.json
+
+    - name: Sign images using Cosign
+      steps:
+        - name: Install Cosign
+          uses: sigstore/cosign-installer@main
+        - name: Check cosign installation
+          run: cosign version
+        - name: Sign the frontend image with GitHub OIDC Token
+          run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+        - name: Sign the backend image with GitHub OIDC Token
+          run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
     #- name: Publish docker images to Google Artifact Registry
     #  run: |-
