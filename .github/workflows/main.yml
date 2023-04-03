@@ -96,25 +96,27 @@ jobs:
           --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
           ${{ env.BACKEND }}
 
-    - name: Run Trivy vulnerability scanner
+    - name: Run Trivy vulnerability scanner for frontend
       env:
         GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
-      steps:
-        - name: Frontend
-          uses: aquasecurity/trivy-action@master
-          with:
-            image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
-            scan-ref: ${{ github.workspace }}/frontend
-            format: 'json'
-            output: 'frontend-image-trivy-results.json'
-        - name: Backend
-          uses: aquasecurity/trivy-action@master
-          with:
-            image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
-            scan-ref: ${{ github.workspace }}/backend
-            format: 'json'
-            output: 'backend-image-trivy-results.json'
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
+        scan-ref: ${{ github.workspace }}/frontend
+        format: 'json'
+        output: 'frontend-image-trivy-results.json'
+
+    - name: Run Trivy vulnerability scanner for backend
+      env:
+        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        TRIVY_USERNAME: ""
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
+        scan-ref: ${{ github.workspace }}/backend
+        format: 'json'
+        output: 'backend-image-trivy-results.json'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
     #- name: Upload frontend image trivy scanning results
@@ -130,16 +132,17 @@ jobs:
     #    name: backend-trivy-results.json
     #    path: backend-image-trivy-results.json
 
-    - name: Sign images using Cosign
-      steps:
-        - name: Install Cosign
-          uses: sigstore/cosign-installer@main
-        - name: Check cosign installation
-          run: cosign version
-        - name: Sign the frontend image with GitHub OIDC Token
-          run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-        - name: Sign the backend image with GitHub OIDC Token
-          run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@main
+
+    - name: Check cosign installation
+      run: cosign version
+
+    - name: Sign the frontend image with GitHub OIDC Token
+      run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+
+    - name: Sign the backend image with GitHub OIDC Token
+      run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
     #- name: Publish docker images to Google Artifact Registry
     #  run: |-
