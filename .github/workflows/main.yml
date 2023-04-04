@@ -77,12 +77,12 @@ jobs:
     - run: |-
         gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    #- name: Get the GKE credentials
-    #  uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
-    #  with:
-    #    cluster_name: ${{ env.GKE_CLUSTER }}
-    #    location: ${{ env.GKE_ZONE }}
-    #    credentials: ${{ secrets.GKE_SA_KEY }}
+    - name: Get the GKE credentials
+      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      with:
+        cluster_name: ${{ env.GKE_CLUSTER }}
+        location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
 
     - name: Build frontend docker image
       run: |-
@@ -96,27 +96,27 @@ jobs:
           --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
           ${{ env.BACKEND }}
 
-    - name: Run Trivy vulnerability scanner for frontend
-      env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
-        TRIVY_USERNAME: ""
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
-        scan-ref: ${{ github.workspace }}/frontend
-        format: 'json'
-        output: 'frontend-image-trivy-results.json'
+    #- name: Run Trivy vulnerability scanner for frontend
+    #  env:
+    #    GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+    #    TRIVY_USERNAME: ""
+    #  uses: aquasecurity/trivy-action@master
+    #  with:
+    #    image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
+    #    scan-ref: ${{ github.workspace }}/frontend
+    #    format: 'json'
+    #    output: 'frontend-image-trivy-results.json'
 
-    - name: Run Trivy vulnerability scanner for backend
-      env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
-        TRIVY_USERNAME: ""
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
-        scan-ref: ${{ github.workspace }}/backend
-        format: 'json'
-        output: 'backend-image-trivy-results.json'
+    #- name: Run Trivy vulnerability scanner for backend
+    #  env:
+    #    GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+    #    TRIVY_USERNAME: ""
+    #  uses: aquasecurity/trivy-action@master
+    #  with:
+    #    image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
+    #    scan-ref: ${{ github.workspace }}/backend
+    #    format: 'json'
+    #    output: 'backend-image-trivy-results.json'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
     #- name: Upload frontend image trivy scanning results
@@ -141,24 +141,24 @@ jobs:
     - name: Sign the frontend image with GitHub OIDC Token
       run: |-
         IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend
 
     - name: Sign the backend image with GitHub OIDC Token
       run: |-
         IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend
 
-    #- name: Publish docker images to Google Artifact Registry
-    #  run: |-
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+    - name: Publish docker images to Google Artifact Registry
+      run: |-
+        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
+        docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
 
-    #- name: Deploy docker images to the GKE cluster
-    #  env:
-    #    MANIFESTS: deployment
-    #  run: |-
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
-    #    kubectl get all --namespace env-intern
+    - name: Deploy docker images to the GKE cluster
+      env:
+        MANIFESTS: deployment
+      run: |-
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
+        kubectl get all --namespace env-intern
