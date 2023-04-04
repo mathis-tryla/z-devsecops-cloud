@@ -66,11 +66,17 @@ jobs:
        name: app.jar
        path: ${{ env.BACKEND }}/target
 
-    - name: Setup gcloud CLI
-      uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
       with:
-        service_account_key: ${{ secrets.GKE_SA_KEY }}
-        project_id: ${{ secrets.GKE_PROJECT }}
+        workload_identity_provider: 'projects/599822394994/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        service_account: 'my-service-account@z-devsecops-cloud.iam.gserviceaccount.com'
+
+    #- name: Setup gcloud CLI
+    #  uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
+    #  with:
+    #    service_account_key: ${{ secrets.GKE_SA_KEY }}
+    #    project_id: ${{ secrets.GKE_PROJECT }}
 
     # Configure Docker to use the gcloud command-line tool as a credential
     # helper for authentication
@@ -82,19 +88,18 @@ jobs:
       with:
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
-        credentials: ${{ secrets.GKE_SA_KEY }}
 
-    - name: Build frontend docker image
-      run: |-
-        docker build \
-          --tag "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
-          ${{ env.FRONTEND }}
+    #- name: Build frontend docker image
+    #  run: |-
+    #    docker build \
+    #      --tag "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+    #      ${{ env.FRONTEND }}
 
-    - name: Build backend docker image
-      run: |-
-        docker build \
-          --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
-          ${{ env.BACKEND }}
+    #- name: Build backend docker image
+    #  run: |-
+    #    docker build \
+    #      --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+    #      ${{ env.BACKEND }}
 
     #- name: Run Trivy vulnerability scanner for frontend
     #  env:
@@ -148,24 +153,17 @@ jobs:
     #    IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
     #    cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
-    - name: Publish docker images to Google Artifact Registry
-      run: |-
-        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
-        docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+    #- name: Publish docker images to Google Artifact Registry
+    #  run: |-
+    #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
+    #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
 
-    - name: Deploy docker images to the GKE cluster
-      env:
-        MANIFESTS: deployment
-      run: |-
-        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
-        kubectl get all --namespace env-intern
-
-    - run: |-
-        sleep 2 &&
-        kubectl config set-context --current --namespace=env-intern &&
-        POD_NAME=$(kubectl get pod -o=custom-columns=:metadata.name -l type=api) &&
-        kubectl exec -it $POD_NAME -- bash  &&
-        gcloud auth list
+    #- name: Deploy docker images to the GKE cluster
+    #  env:
+    #    MANIFESTS: deployment
+    #  run: |-
+    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
+    #    kubectl get all --namespace env-intern
