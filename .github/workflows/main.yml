@@ -73,7 +73,7 @@ jobs:
         project_id: ${{ secrets.GKE_PROJECT }}
 
     # Configure Docker to use the gcloud command-line tool as a credential
-     helper for authentication
+    # helper for authentication
     - run: |-
         gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
