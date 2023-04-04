@@ -141,17 +141,22 @@ jobs:
     - name: Sign the frontend image with GitHub OIDC Token
       run: |-
         IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
 
     - name: Sign the backend image with GitHub OIDC Token
       run: |-
         IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+    - name: Verify signed images
+      run: |-
+        cosign verify ${{ env.ARTIFACT_REGISTRY }}/frontend:latest | jq . &&
+        cosign verify ${{ env.ARTIFACT_REGISTRY }}/backend:latest | jq .
 
     - name: Publish docker images to Google Artifact Registry
       run: |-
-        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
-        docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
+        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
+        docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
 
     - name: Deploy docker images to the GKE cluster
       env:
