@@ -73,7 +73,7 @@ jobs:
         project_id: ${{ secrets.GKE_PROJECT }}
 
     # Configure Docker to use the gcloud command-line tool as a credential
-    # helper for authentication
+     helper for authentication
     - run: |-
         gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
@@ -132,26 +132,21 @@ jobs:
     #    name: backend-trivy-results.json
     #    path: backend-image-trivy-results.json
 
-    - name: Install Cosign
-      uses: sigstore/cosign-installer@main
+    #- name: Install Cosign
+    #  uses: sigstore/cosign-installer@main
 
-    - name: Check cosign installation
-      run: cosign version
+    #- name: Check cosign installation
+    #  run: cosign version
 
-    - name: Sign the frontend image with GitHub OIDC Token
-      run: |-
-        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+    #- name: Sign the frontend image with GitHub OIDC Token
+    #  run: |-
+    #    IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+    #    cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
 
-    - name: Sign the backend image with GitHub OIDC Token
-      run: |-
-        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
-
-    - name: Verify signed images
-      run: |-
-        cosign verify ${{ env.ARTIFACT_REGISTRY }}/frontend:latest | jq . &&
-        cosign verify ${{ env.ARTIFACT_REGISTRY }}/backend:latest | jq .
+    #- name: Sign the backend image with GitHub OIDC Token
+    #  run: |-
+    #    IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+    #    cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
     - name: Publish docker images to Google Artifact Registry
       run: |-
@@ -167,3 +162,7 @@ jobs:
         kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
         kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
         kubectl get all --namespace env-intern
+
+    - run: |-
+        kubectl exec -it pod/backend* -- bash  &&
+        gcloud auth list
