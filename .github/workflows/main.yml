@@ -17,6 +17,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
     - name: Checkout code
@@ -78,10 +79,8 @@ jobs:
     #    service_account_key: ${{ secrets.GKE_SA_KEY }}
     #    project_id: ${{ secrets.GKE_PROJECT }}
 
-    # Configure Docker to use the gcloud command-line tool as a credential
-    # helper for authentication
-    - run: |-
-        gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+    - name: Configure Docker to use the gcloud command-line tool as a credential
+      run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
