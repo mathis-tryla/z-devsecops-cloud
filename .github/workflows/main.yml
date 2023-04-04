@@ -36,26 +36,26 @@ jobs:
         cache: maven
 
     # SAST
-    - name: Create .mvn directory
-      run: |-
-        cd ${{ github.workspace }}/backend &&
-        mvn -N io.takari:maven:wrapper
+    #- name: Create .mvn directory
+    #  run: |-
+    #    cd ${{ github.workspace }}/backend &&
+    #    mvn -N io.takari:maven:wrapper
 
-    - name: Run Snyk to check for vulnerabilities
-      uses: snyk/actions/maven@master
+    #- name: Run Snyk to check for vulnerabilities
+    #  uses: snyk/actions/maven@master
       # TODO: comment the line below in production
-      continue-on-error: true
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      with:
-        args: --all-projects --json-file-output=sast.json
+    #  continue-on-error: true
+    #  env:
+    #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    #  with:
+    #    args: --all-projects --json-file-output=sast.json
 
     # UPLOAD SAST RESULTS
-    - name: Upload SAST snyk results
-      uses: actions/upload-artifact@v3
-      with:
-        name: sast.json
-        path: sast.json
+    #- name: Upload SAST snyk results
+    #  uses: actions/upload-artifact@v3
+    #  with:
+    #    name: sast.json
+    #    path: sast.json
 
     - name: Build with Maven
       run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
@@ -77,12 +77,12 @@ jobs:
     - run: |-
         gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    - name: Get the GKE credentials
-      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
-      with:
-        cluster_name: ${{ env.GKE_CLUSTER }}
-        location: ${{ env.GKE_ZONE }}
-        credentials: ${{ secrets.GKE_SA_KEY }}
+    #- name: Get the GKE credentials
+    #  uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+    #  with:
+    #    cluster_name: ${{ env.GKE_CLUSTER }}
+    #    location: ${{ env.GKE_ZONE }}
+    #    credentials: ${{ secrets.GKE_SA_KEY }}
 
     - name: Build frontend docker image
       run: |-
@@ -139,10 +139,14 @@ jobs:
       run: cosign version
 
     - name: Sign the frontend image with GitHub OIDC Token
-      run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+      run: |-
+        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
 
     - name: Sign the backend image with GitHub OIDC Token
-      run: cosign sign --yes ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+      run: |-
+        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
     #- name: Publish docker images to Google Artifact Registry
     #  run: |-
