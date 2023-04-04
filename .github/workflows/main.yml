@@ -166,6 +166,6 @@ jobs:
     - run: |-
         sleep 2 &&
         POD_NAME=$(kubectl get pod -o=custom-columns=:metadata.name -l type=api) &&
-        echo $POD_NAME &&
-        kubectl exec -it $POD_NAME -- bash  &&
-        gcloud auth list
+        echo $POD_NAME
+    #    kubectl exec -it $POD_NAME -- bash  &&
+    #    gcloud auth list
