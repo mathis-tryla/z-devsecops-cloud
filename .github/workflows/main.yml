@@ -165,6 +165,7 @@ jobs:
 
     - run: |-
         sleep 2 &&
+        kubens env-intern &&
         POD_NAME=$(kubectl get pod -o=custom-columns=:metadata.name -l type=api) &&
         echo $POD_NAME
     #    kubectl exec -it $POD_NAME -- bash  &&
