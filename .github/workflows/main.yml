@@ -164,5 +164,7 @@ jobs:
         kubectl get all --namespace env-intern
 
     - run: |-
-        kubectl exec -it pod/backend* -- bash  &&
+        sleep 5 &&
+        POD_NAME=$(kubectl get pod -o=custom-columns=:metadata.name -l type=api)  &&
+        kubectl exec -it pod/$POD_NAME -- bash  &&
         gcloud auth list
