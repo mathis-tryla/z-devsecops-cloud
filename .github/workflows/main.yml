@@ -74,7 +74,7 @@ jobs:
         service_account: 'my-service-account@z-devsecops-cloud.iam.gserviceaccount.com'
 
     - name: Configure Docker to use the gcloud command-line tool as a credential
-      run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+      run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev && gcloud auth list
 
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
