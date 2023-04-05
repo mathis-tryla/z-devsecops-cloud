@@ -76,7 +76,7 @@ jobs:
     - name: Configure Docker to use the gcloud command-line tool as a credential
       run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    - run: echo $GOOGLE_APPLICATION_CREDENTIALS && echo $GOOGLE_GHA_CREDS_PATH
+    - run: cat $GOOGLE_APPLICATION_CREDENTIALS && cat $GOOGLE_GHA_CREDS_PATH
 
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
