@@ -74,9 +74,10 @@ jobs:
         project_id: ${{ secrets.GKE_PROJECT }}
         workload_identity_provider: ${{ secrets.WORKLOAD_ID_PROVIDER }}
         service_account: ${{ secrets.SA }}
-        id_token_include_email: true
-        #token_format: 'access_token'
-        #access_token_lifetime: '300s'
+        access_token_scopes: 'email'
+        #id_token_include_email: true
+        token_format: 'access_token'
+        access_token_lifetime: '300s'
 
     - name: Configure Docker to use the gcloud command-line tool as a credential
       run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
