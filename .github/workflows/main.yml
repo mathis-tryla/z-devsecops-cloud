@@ -23,24 +23,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    #- name: Cache Maven packages
-    #  uses: actions/cache@v3
-    #  with:
-    #    path: ~/.m2/repository
-    #    key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-    #- name: Set up JDK 19
-    #  uses: actions/setup-java@v3
-    #  with:
-    #    java-version: '19'
-    #    distribution: 'temurin'
-    #    cache: maven
+    - name: Set up JDK 19
+      uses: actions/setup-java@v3
+      with:
+        java-version: '19'
+        distribution: 'temurin'
+        cache: maven
 
     # SAST
-    #- name: Create .mvn directory
-    #  run: |-
-    #    cd ${{ github.workspace }}/backend &&
-    #    mvn -N io.takari:maven:wrapper
+    - name: Create .mvn directory
+      run: |-
+        cd ${{ github.workspace }}/backend &&
+        mvn -N io.takari:maven:wrapper
 
     #- name: Run Snyk to check for vulnerabilities
     #  uses: snyk/actions/maven@master
@@ -58,46 +58,47 @@ jobs:
     #    name: sast.json
     #    path: sast.json
 
-    #- name: Build with Maven
-    #  run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+    - name: Build with Maven
+      run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
-    #- name: Upload JAR artifact
-    #  uses: actions/upload-artifact@v1
-    #  with:
-    #   name: app.jar
-    #   path: ${{ env.BACKEND }}/target
+    - name: Upload JAR artifact
+      uses: actions/upload-artifact@v1
+      with:
+       name: app.jar
+       path: ${{ env.BACKEND }}/target
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
       with:
-        workload_identity_provider: ${{ secrets.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ secrets.SA }}
-        token_format: 'access_token'
-        access_token_lifetime: '300s'
+        service_account_key: ${{ secrets.GKE_SA_KEY }}
+        project_id: ${{ secrets.GKE_PROJECT }}
+        #workload_identity_provider: ${{ secrets.WORKLOAD_ID_PROVIDER }}
+        #service_account: ${{ secrets.SA }}
+        #token_format: 'access_token'
+        #access_token_lifetime: '300s'
 
     - name: Configure Docker to use the gcloud command-line tool as a credential
       run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-    - run: cat $GOOGLE_APPLICATION_CREDENTIALS
-
     - name: Get the GKE credentials
       uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
       with:
-        project_id: z-devsecops-cloud
+        #project_id: z-devsecops-cloud
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
+        credentials: ${{ secrets.GKE_SA_KEY }}
 
-    #- name: Build frontend docker image
-    #  run: |-
-    #    docker build \
-    #      --tag "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
-    #      ${{ env.FRONTEND }}
+    - name: Build frontend docker image
+      run: |-
+        docker build \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+          ${{ env.FRONTEND }}
 
-    #- name: Build backend docker image
-    #  run: |-
-    #    docker build \
-    #      --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
-    #      ${{ env.BACKEND }}
+    - name: Build backend docker image
+      run: |-
+        docker build \
+          --tag "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+          ${{ env.BACKEND }}
 
     #- name: Run Trivy vulnerability scanner for frontend
     #  env:
@@ -135,33 +136,33 @@ jobs:
     #    name: backend-trivy-results.json
     #    path: backend-image-trivy-results.json
 
-    #- name: Install Cosign
-    #  uses: sigstore/cosign-installer@main
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@main
 
-    #- name: Check cosign installation
-    #  run: cosign version
+    - name: Check cosign installation
+      run: cosign version
 
-    #- name: Sign the frontend image with GitHub OIDC Token
-    #  run: |-
-    #    IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-    #    cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+    - name: Sign the frontend image with GitHub OIDC Token
+      run: |-
+        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
 
-    #- name: Sign the backend image with GitHub OIDC Token
-    #  run: |-
-    #    IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-    #    cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+    - name: Sign the backend image with GitHub OIDC Token
+      run: |-
+        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
+        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
-    #- name: Publish docker images to Google Artifact Registry
-    #  run: |-
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
-    #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+    - name: Publish docker images to Google Artifact Registry
+      run: |-
+        docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" && \
+        docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
 
-    #- name: Deploy docker images to the GKE cluster
-    #  env:
-    #    MANIFESTS: deployment
-    #  run: |-
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-    #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
-    #    kubectl get all --namespace env-intern
+    - name: Deploy docker images to the GKE cluster
+      env:
+        MANIFESTS: deployment
+      run: |-
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+        kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
+        kubectl get all --namespace env-intern
