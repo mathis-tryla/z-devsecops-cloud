@@ -75,7 +75,7 @@ jobs:
         workload_identity_provider: ${{ secrets.WORKLOAD_ID_PROVIDER }}
         service_account: ${{ secrets.SA }}
         access_token_scopes: 'email'
-        #id_token_include_email: true
+        id_token_include_email: true
         token_format: 'access_token'
         access_token_lifetime: '300s'
 
