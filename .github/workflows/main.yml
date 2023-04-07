@@ -118,6 +118,8 @@ jobs:
       with:
         image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
         scan-ref: ${{ github.workspace }}/frontend
+        format: 'sarif'
+        output: 'trivy-results-frontend.sarif'
 
     - name: Run Trivy vulnerability scanner for backend
       env:
@@ -127,11 +129,19 @@ jobs:
       with:
         image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
         scan-ref: ${{ github.workspace }}/backend
+        format: 'sarif'
+        output: 'trivy-results-backend.sarif'
 
-    - name: Upload Trivy scan results to GitHub Security tab
+    - name: Upload Trivy scan results to GitHub Security tab frontend
       uses: github/codeql-action/upload-sarif@v2
       with:
-        sarif_file: 'trivy-results.sarif'
+        sarif_file: 'trivy-results-frontend.sarif'
+        category: 'code'
+
+    - name: Upload Trivy scan results to GitHub Security tab backend
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results-backend.sarif'
         category: 'code'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
