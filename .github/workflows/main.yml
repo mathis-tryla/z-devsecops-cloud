@@ -109,27 +109,29 @@ jobs:
           --tag "${{ env.ARTIFACT_REGISTRY }}/backend" \
           ${{ env.BACKEND }}
 
-    #- name: Run Trivy vulnerability scanner for frontend
-    #  env:
-    #    GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
-    #    TRIVY_USERNAME: ""
-    #  uses: aquasecurity/trivy-action@master
-    #  with:
-    #    image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
-    #    scan-ref: ${{ github.workspace }}/frontend
-    #    format: 'json'
-    #    output: 'frontend-image-trivy-results.json'
+    - name: Run Trivy vulnerability scanner for frontend
+      env:
+        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        TRIVY_USERNAME: ""
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest'
+        scan-ref: ${{ github.workspace }}/frontend
 
-    #- name: Run Trivy vulnerability scanner for backend
-    #  env:
-    #    GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
-    #    TRIVY_USERNAME: ""
-    #  uses: aquasecurity/trivy-action@master
-    #  with:
-    #    image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
-    #    scan-ref: ${{ github.workspace }}/backend
-    #    format: 'json'
-    #    output: 'backend-image-trivy-results.json'
+    - name: Run Trivy vulnerability scanner for backend
+      env:
+        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        TRIVY_USERNAME: ""
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest'
+        scan-ref: ${{ github.workspace }}/backend
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+        category: 'code'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
     #- name: Upload frontend image trivy scanning results
