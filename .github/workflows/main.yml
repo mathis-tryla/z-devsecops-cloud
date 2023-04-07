@@ -63,11 +63,11 @@ jobs:
     - name: Build with Maven
       run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
-    - name: Upload JAR artifact
-      uses: actions/upload-artifact@v1
-      with:
-       name: app.jar
-       path: ${{ env.BACKEND }}/target
+    #- name: Upload JAR artifact
+    #  uses: actions/upload-artifact@v1
+    #  with:
+    #   name: app.jar
+    #   path: ${{ env.BACKEND }}/target
 
     - name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v1
@@ -106,7 +106,7 @@ jobs:
 
     - name: Run Trivy vulnerability scanner for frontend
       env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        #GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
       uses: aquasecurity/trivy-action@master
       with:
@@ -117,7 +117,7 @@ jobs:
 
     - name: Run Trivy vulnerability scanner for backend
       env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        #GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
       uses: aquasecurity/trivy-action@master
       with:
@@ -137,20 +137,6 @@ jobs:
       with:
         sarif_file: 'trivy-results-backend.sarif'
         category: 'backend'
-
-    # UPLOAD FRONTEND IMAGE SCANNING RESULTS
-    #- name: Upload frontend image trivy scanning results
-    #  uses: actions/upload-artifact@v3
-    #  with:
-    #    name: frontend-trivy-results.json
-    #    path: frontend-image-trivy-results.json
-
-    # UPLOAD BACKEND IMAGE SCANNING RESULTS
-    #- name: Upload backend image trivy scanning results
-    #  uses: actions/upload-artifact@v3
-    #  with:
-    #    name: backend-trivy-results.json
-    #    path: backend-image-trivy-results.json
 
     - name: Install Cosign
       uses: sigstore/cosign-installer@main
@@ -174,7 +160,6 @@ jobs:
         europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend \
         --certificate-identity ${{ env.DEV_SA }} \
         --certificate-oidc-issuer "https://accounts.google.com"
-
 
     - name: Publish docker images to Google Artifact Registry
       run: |-
