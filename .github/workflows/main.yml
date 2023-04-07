@@ -10,6 +10,7 @@ env:
   ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   GKE_CLUSTER: z-devsecops-cluster
   GKE_ZONE: europe-west1-b
+  DEV_SA: 599822394994-compute@developer.gserviceaccount.com
     
 jobs:
   build-and-push-images:
@@ -164,8 +165,8 @@ jobs:
       run: |-
         cosign verify europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend \
         europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend \
-        --certificate-identity "mathis.tryla@zenika.com" \
-        --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+        --certificate-identity ${{ env.DEV_SA }} \
+        --certificate-oidc-issuer "https://accounts.google.com"
 
 
     - name: Publish docker images to Google Artifact Registry
