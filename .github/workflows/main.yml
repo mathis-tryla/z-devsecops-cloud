@@ -3,15 +3,17 @@ name: Main CI
 on:
   push:
     branches: [ "main" ]
-    
+
 env:
   FRONTEND: ./frontend
   BACKEND: ./backend
   ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   GKE_CLUSTER: z-devsecops-cluster
   GKE_ZONE: europe-west1-b
-  DEV_SA: 599822394994-compute@developer.gserviceaccount.com
-    
+  SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
+  WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
+
 jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
@@ -63,37 +65,31 @@ jobs:
     - name: Build with Maven
       run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
-    - name: Upload JAR artifact
-      uses: actions/upload-artifact@v1
-      with:
-       name: app.jar
-       path: ${{ env.BACKEND }}/target
-
     - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v1
+      uses: google-github-actions/auth@v0
+      id: auth
       with:
-        workload_identity_provider: ${{ secrets.WORKLOAD_ID_PROVIDER }}
-        service_account: ${{ secrets.SA }}
-
-    #- name: Setup gcloud CLI
-    #  uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
-    #  with:
-    #    service_account_key: ${{ secrets.GKE_SA_KEY }}
-    #    project_id: ${{ secrets.GKE_PROJECT }}
+        create_credentials_file: 'true'
+        workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+        service_account: ${{ env.SA }}
 
     - name: Configure Docker to use the gcloud command-line tool as a credential
-      run: gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
-
+      run: |
+        gcloud config set disable_prompts true
+        gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+        gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+        
     - name: Get the GKE credentials
-      uses: google-github-actions/get-gke-credentials@fb08709ba27618c31c09e014e1d8364b02e5042e
+      uses: google-github-actions/get-gke-credentials@main
       with:
-        #project_id: z-devsecops-cloud
+        project_id: z-devsecops-cloud
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
-        credentials: ${{ secrets.GKE_SA_KEY }}
-
+        
     - name: Build frontend docker image
       run: |-
+        kubectl get pods -A
+
         docker build \
           --tag "${{ env.ARTIFACT_REGISTRY }}/frontend" \
           ${{ env.FRONTEND }}
@@ -106,7 +102,7 @@ jobs:
 
     - name: Run Trivy vulnerability scanner for frontend
       env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        #GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
       uses: aquasecurity/trivy-action@master
       with:
@@ -117,7 +113,7 @@ jobs:
 
     - name: Run Trivy vulnerability scanner for backend
       env:
-        GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
+        #GOOGLE_APPLICATION_CREDENTIAL: ${{ secrets.GKE_SA_KEY }}
         TRIVY_USERNAME: ""
       uses: aquasecurity/trivy-action@master
       with:
@@ -152,34 +148,23 @@ jobs:
     #    name: backend-trivy-results.json
     #    path: backend-image-trivy-results.json
 
-    - name: Install Cosign
-      uses: sigstore/cosign-installer@main
-
-    - name: Check cosign installation
-      run: cosign version
-
-    - name: Sign the frontend image with GitHub OIDC Token
-      run: |-
-        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/frontend
-
-    - name: Sign the backend image with GitHub OIDC Token
-      run: |-
-        IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
-        cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend
-
-    - name: Verify signed images
-      run: |-
-        cosign verify europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend \
-        europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend \
-        --certificate-identity ${{ env.DEV_SA }} \
-        --certificate-oidc-issuer "https://accounts.google.com"
-
-
     - name: Publish docker images to Google Artifact Registry
       run: |-
         docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
         docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
+
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@main
+
+    - name: Sign images with Google KMS key
+      run: |-
+        cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
+        cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
+
+    - name: Verify signed images
+      run: |-
+        cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend       
+        cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
     - name: Deploy docker images to the GKE cluster
       env:
