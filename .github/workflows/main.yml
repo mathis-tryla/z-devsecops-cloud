@@ -160,6 +160,14 @@ jobs:
         IDENTITY_TOKEN=$(gcloud auth print-identity-token --audiences=sigstore) &&
         cosign sign --yes --identity-token=$IDENTITY_TOKEN ${{ env.ARTIFACT_REGISTRY }}/backend
 
+    - name: Verify signed images
+      run: |-
+        cosign verify europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend \
+        europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend \
+        --certificate-identity "mathis.tryla@zenika.com" \
+        --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+
+
     - name: Publish docker images to Google Artifact Registry
       run: |-
         docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
