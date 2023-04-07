@@ -136,13 +136,13 @@ jobs:
       uses: github/codeql-action/upload-sarif@v2
       with:
         sarif_file: 'trivy-results-frontend.sarif'
-        category: 'code'
+        category: 'frontend'
 
     - name: Upload Trivy scan results to GitHub Security tab backend
       uses: github/codeql-action/upload-sarif@v2
       with:
         sarif_file: 'trivy-results-backend.sarif'
-        category: 'code'
+        category: 'backend'
 
     # UPLOAD FRONTEND IMAGE SCANNING RESULTS
     #- name: Upload frontend image trivy scanning results
