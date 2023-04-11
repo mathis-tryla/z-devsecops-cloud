@@ -187,7 +187,7 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
           kubectl get all --namespace env-intern
 
-      # FALCO : CONTAINER RUNTIME SECURITY
+      # FALCO CONTAINER RUNTIME SECURITY
       - name: Install Falco with Helm
         run: |-
           helm repo add falcosecurity https://falcosecurity.github.io/charts
