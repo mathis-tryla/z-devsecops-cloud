@@ -192,4 +192,4 @@ jobs:
         run: |-
           helm repo add falcosecurity https://falcosecurity.github.io/charts
           helm repo update
-          helm install falco --set tty=true falcosecurity/falco
+          helm install falco --set tty=true falcosecurity/falco -n env-intern
