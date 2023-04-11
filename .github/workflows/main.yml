@@ -53,7 +53,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --all-projects
+          args: --all-projects --sarif-file-output=snyk.sarif
 
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
@@ -128,10 +128,10 @@ jobs:
           sarif_file: 'trivy-results-backend.sarif'
           category: 'backend'
 
-      - name: Publish docker images to Google Artifact Registry
-        run: |-
-          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
-          docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
+      #- name: Publish docker images to Google Artifact Registry
+      #  run: |-
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" && \
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
