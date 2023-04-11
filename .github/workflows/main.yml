@@ -150,18 +150,18 @@ jobs:
         run: |-
           helm repo add sigstore https://sigstore.github.io/helm-charts
           helm repo update
-          helm install policy-controller \
-          -n env-intern sigstore/policy-controller \
-          --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA_ID }}" \
-          --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA_ID }}"
+      #    helm install policy-controller -n env-intern sigstore/policy-controller \
+      #    --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
+      #    --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
 
       - name: Deploy the policy only allowing signed container images with Cloud KMS key
         run: |-
           cat << EOF | kubectl apply -f -
-          apiVersion: policy.sigstore.dev/v1alpha1
+          apiVersion: policy.sigstore.dev/v1beta1
           kind: ClusterImagePolicy
           metadata:
             name: private-signed-images-cip
+            namespace: env-intern
           spec:
             images:
             - glob: "**"
@@ -169,7 +169,7 @@ jobs:
             - key:
                 kms: ${{ env.KMS }}/cryptoKeyVersions/1
           EOF
-          kubectl label namespace env-intern policy-controller.sigstore.dev/include=true
+          kubectl label namespace env-intern policy.sigstore.dev/include=true
 
       - name: Test with an unsigned container image and see if it’s blocked
         run: |-
