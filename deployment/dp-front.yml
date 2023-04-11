@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend:latest
+          image: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/frontend
           imagePullPolicy: Always
           env:
             - name: BASE_URL
