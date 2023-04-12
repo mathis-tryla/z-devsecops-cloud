@@ -45,17 +45,16 @@ jobs:
         run: |-
           cd ${{ github.workspace }}/backend 
           mvn -N io.takari:maven:wrapper
-          ls ${{ github.workspace }}/backend 
-          ./mvnw dependency:tree -DoutputType=dot --batch-mode --non-recursive --file="pom.xml"
 
       - name: Run Snyk to check for vulnerabilities
+        run: cd ${{ github.workspace }}/backend
         uses: snyk/actions/maven@master
         # TODO: comment the line below in production
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --all-projects --sarif-file-output=snyk.sarif
+          args: --maven-aggregate-project --sarif-file-output=snyk.sarif
 
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
