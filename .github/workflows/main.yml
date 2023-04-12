@@ -41,10 +41,10 @@ jobs:
           cache: maven
 
       # SAST
-      - name: Create .mvn directory
-        run: |-
-          cd ${{ github.workspace }}/backend &&
-          mvn -N io.takari:maven:wrapper
+      #- name: Create .mvn directory
+      #  run: |-
+      #    cd ${{ github.workspace }}/backend &&
+      #    mvn -N io.takari:maven:wrapper
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
