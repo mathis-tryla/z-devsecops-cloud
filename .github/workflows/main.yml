@@ -53,12 +53,13 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=pom.xml --maven-aggregate-project --sarif-file-output=snyk.sarif
+          args: --file=${{ github.workspace }}/backend/pom.xml --sarif-file-output=snyk-maven.sarif
 
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
         with:
-          sarif_file: snyk.sarif
+          sarif_file: snyk-maven.sarif
+          category: 'snyk-maven'
 
       - name: Build with Maven
         run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
