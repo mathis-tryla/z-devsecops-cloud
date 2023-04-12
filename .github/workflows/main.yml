@@ -47,7 +47,6 @@ jobs:
           mvn -N io.takari:maven:wrapper
 
       - name: Run Snyk to check for vulnerabilities
-        working-directory: ${{ env.BACKEND }}
         uses: snyk/actions/maven@master
         # TODO: comment the line below in production
         continue-on-error: true
@@ -55,13 +54,14 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --file=pom.xml --sarif-file-output=snyk-maven.sarif
+        working-directory: ${{ env.BACKEND }}
 
       - name: Upload Snyk scan results to GitHub Security tab
-        working-directory: ${{ env.BACKEND }}
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: snyk-maven.sarif
           category: 'snyk-maven'
+        working-directory: ${{ env.BACKEND }}
 
       - name: Build with Maven
         run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
