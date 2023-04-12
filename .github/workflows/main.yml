@@ -53,7 +53,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --file=${{ github.workspace }}/backend/pom.xml --sarif-file-output=snyk-maven.sarif
+          args: --file=${{ env.BACKEND }}/pom.xml --sarif-file-output=snyk-maven.sarif
 
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
