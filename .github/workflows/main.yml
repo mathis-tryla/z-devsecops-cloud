@@ -46,11 +46,6 @@ jobs:
           cd ${{ github.workspace }}/backend 
           mvn -N io.takari:maven:wrapper
 
-      - run: |-
-          pwd
-          cd ${{ github.workspace }}/backend
-          pwd
-
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
         # TODO: comment the line below in production
@@ -58,7 +53,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --maven-aggregate-project --sarif-file-output=snyk.sarif
+          args: --file=pom.xml --maven-aggregate-project --sarif-file-output=snyk.sarif
 
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
