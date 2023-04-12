@@ -46,6 +46,8 @@ jobs:
       #    cd ${{ github.workspace }}/backend &&
       #    mvn -N io.takari:maven:wrapper
 
+      - run: echo $JAVA_HOME
+
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/maven@master
         # TODO: comment the line below in production
