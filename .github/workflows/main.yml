@@ -191,9 +191,13 @@ jobs:
       # FALCO CONTAINER RUNTIME SECURITY
       - name: Install Falco with Helm
         run: |-        
-            sudo apt-get install -y dkms make linux-headers-$(uname -r)
-            sudo apt-get install -y clang llvm
-            sudo apt-get install -y dialog
+            sudo apt install git cmake build-essential pkg-config autoconf libtool libelf-dev -y
+            git clone https://github.com/falcosecurity/falco.git
+            cd ${{ github.workspace }}/falco
+            mkdir -p build
+            cd build
+            cmake -DUSE_BUNDLED_DEPS=ON ..
+            make falco
             helm repo add falcosecurity https://falcosecurity.github.io/charts
             helm repo update
             helm upgrade --install falco -n env-intern falcosecurity/falco
