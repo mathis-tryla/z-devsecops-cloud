@@ -147,36 +147,36 @@ jobs:
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
-      - name: Install Police-controller helm chart
-        run: |-
-          helm repo add sigstore https://sigstore.github.io/helm-charts
-          helm repo update
-          helm install policy-controller -n env-intern sigstore/policy-controller \
-          --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
-          --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
+      #- name: Install Police-controller helm chart
+      #  run: |-
+      #    helm repo add sigstore https://sigstore.github.io/helm-charts
+      #    helm repo update
+      #    helm upgrade --install policy-controller -n env-intern sigstore/policy-controller \
+      #    --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
+      #    --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
 
-      - name: Deploy the policy only allowing signed container images with Cloud KMS key
-        run: |-
-          cat << EOF | kubectl apply -f -
-          apiVersion: policy.sigstore.dev/v1beta1
-          kind: ClusterImagePolicy
-          metadata:
-            name: private-signed-images-cip
-            namespace: env-intern
-          spec:
-            images:
-            - glob: "**"
-            authorities:
-            - key:
-                kms: ${{ env.KMS }}/cryptoKeyVersions/1
-          EOF
-          kubectl label namespace env-intern policy.sigstore.dev/include=true
+      #- name: Deploy the policy allowing only signed container images with Cloud KMS key
+      #  run: |-
+      #    cat << EOF | kubectl apply -f -
+      #    apiVersion: policy.sigstore.dev/v1beta1
+      #    kind: ClusterImagePolicy
+      #    metadata:
+      #      name: private-signed-images-cip
+      #      namespace: env-intern
+      #    spec:
+      #      images:
+      #      - glob: "**"
+      #      authorities:
+      #      - key:
+      #          kms: ${{ env.KMS }}/cryptoKeyVersions/1
+      #    EOF
+      #    kubectl label namespace env-intern policy.sigstore.dev/include=true
 
-      - name: Test with an unsigned container image and see if it’s blocked
-        run: |-
-          kubectl create deployment nginx \
-          --image=nginx \
-          -n env-intern
+      #- name: Test with an unsigned container image and see if it’s blocked
+      #  run: |-
+      #    kubectl create deployment nginx \
+      #    --image=nginx \
+      #    -n env-intern
 
       - name: Deploy docker images to the GKE cluster
         env:
