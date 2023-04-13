@@ -191,7 +191,7 @@ jobs:
       # FALCO CONTAINER RUNTIME SECURITY
       - name: Install Falco with Helm
         run: |-
-            sudo apt-get install linux-headers-$(uname -r)
+            sudo modprobe falco          
             helm repo add falcosecurity https://falcosecurity.github.io/charts
             helm repo update
             helm upgrade --install falco -n env-intern falcosecurity/falco
