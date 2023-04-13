@@ -191,6 +191,10 @@ jobs:
       # FALCO CONTAINER RUNTIME SECURITY
       - name: Install Falco with Helm
         run: |-  
+            docker pull docker.io/falcosecurity/falco-driver-loader:0.34.1
+            docker.io/falcosecurity/falcoctl:0.4.0
+            docker.io/falcosecurity/falco-no-driver:0.34.1
+            docker.io/falcosecurity/falcoctl:0.4.0
             helm repo add falcosecurity https://falcosecurity.github.io/charts
             helm repo update
             helm upgrade --install falco -n env-intern falcosecurity/falco
