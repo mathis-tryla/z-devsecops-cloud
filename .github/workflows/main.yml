@@ -192,12 +192,12 @@ jobs:
       - name: Install Falco with Helm
         run: |-
            curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | sudo apt-key add -
-           echo "deb https://download.falco.org/packages/deb stable main" | tee -a /etc/apt/sources.list.d/falcosecurity.list
+           echo "deb https://download.falco.org/packages/deb stable main" | sudo tee -a /etc/apt/sources.list.d/falcosecurity.list
            sudo apt-get update -y
            sudo apt-get -y install linux-headers-$(uname -r)
            sudo apt-get install -y falco
-           systemctl daemon-reload
-           systemctl start falco --now
+           sudo systemctl daemon-reload
+           sudo systemctl start falco --now
       #    helm repo add falcosecurity https://falcosecurity.github.io/charts
       #    helm repo update
       #    helm upgrade --install falco -n env-intern falcosecurity/falco
