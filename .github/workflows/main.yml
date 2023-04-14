@@ -147,30 +147,13 @@ jobs:
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
-      #- name: Install Police-controller helm chart
-      #  run: |-
-      #    helm repo add sigstore https://sigstore.github.io/helm-charts
-      #    helm repo update
-      #    helm upgrade --install policy-controller -n env-intern sigstore/policy-controller \
-      #    --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
-      #    --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
-
-      #- name: Deploy the policy allowing only signed container images with Cloud KMS key
-      #  run: |-
-      #    cat << EOF | kubectl apply -f -
-      #    apiVersion: policy.sigstore.dev/v1beta1
-      #    kind: ClusterImagePolicy
-      #    metadata:
-      #      name: private-signed-images-cip
-      #      namespace: env-intern
-      #    spec:
-      #      images:
-      #      - glob: "**"
-      #      authorities:
-      #      - key:
-      #          kms: ${{ env.KMS }}/cryptoKeyVersions/1
-      #    EOF
-      #    kubectl label namespace env-intern policy.sigstore.dev/include=true
+      - name: Install Police-controller helm chart
+        run: |-
+          helm repo add sigstore https://sigstore.github.io/helm-charts
+          helm repo update
+          helm upgrade --install policy-controller -n env-intern sigstore/policy-controller \
+          --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
+          --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
 
       #- name: Test with an unsigned container image and see if it’s blocked
       #  run: |-
@@ -189,19 +172,8 @@ jobs:
           kubectl get all --namespace env-intern
 
       # FALCO CONTAINER RUNTIME SECURITY
-      #- name: Install Falco with Helm
-      #  run: |-
-      #      docker pull docker.io/falcosecurity/falco-driver-loader:0.34.1
-      #      docker pull docker.io/falcosecurity/falcoctl:0.4.0
-      #      docker pull docker.io/falcosecurity/falco-no-driver:0.34.1
-      #      docker pull docker.io/falcosecurity/falcoctl:0.4.0
-      #      helm repo add falcosecurity https://falcosecurity.github.io/charts
-      #      helm repo update
-      #      helm upgrade --install falco -n env-intern falcosecurity/falco
-      #     curl -s https://falco.org/repo/falcosecurity-3672BA8F.asc | sudo apt-key add -
-      #     echo "deb https://download.falco.org/packages/deb stable main" | sudo tee -a /etc/apt/sources.list.d/falcosecurity.list
-      #     sudo apt-get update -y
-      #     sudo apt-get -y install linux-headers-$(uname -r)
-      #     sudo apt-get install -y falco
-      #     sudo systemctl daemon-reload
-      #     sudo systemctl start falco --now
+      - name: Install Falco with Helm
+        run: |-
+            helm repo add falcosecurity https://falcosecurity.github.io/charts
+            helm repo update
+            helm upgrade --install falco -n env-intern falcosecurity/falco --set driver.kind=ebpf
