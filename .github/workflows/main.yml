@@ -147,20 +147,6 @@ jobs:
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
-      - name: Install Police-controller helm chart
-        run: |-
-          helm repo add sigstore https://sigstore.github.io/helm-charts
-          helm repo update
-          helm upgrade --install policy-controller -n env-intern sigstore/policy-controller \
-          --set "policywebhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}" \
-          --set "webhook.serviceAccount.annotations.iam\.gke\.io/gcp-service-account=${{ secrets.SA }}"
-
-      #- name: Test with an unsigned container image and see if it’s blocked
-      #  run: |-
-      #    kubectl create deployment nginx \
-      #    --image=nginx \
-      #    -n env-intern
-
       - name: Deploy docker images to the GKE cluster
         env:
           MANIFESTS: deployment
@@ -170,10 +156,3 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
           kubectl get all --namespace env-intern
-
-      # FALCO CONTAINER RUNTIME SECURITY
-      - name: Install Falco with Helm
-        run: |-
-            helm repo add falcosecurity https://falcosecurity.github.io/charts
-            helm repo update
-            helm upgrade --install falco -n env-intern falcosecurity/falco --set driver.kind=ebpf
