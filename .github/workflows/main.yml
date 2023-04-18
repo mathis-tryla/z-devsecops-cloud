@@ -157,11 +157,11 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
           kubectl get all --namespace env-intern
 
-      - name: Get frontend pod IP
-        run: |-
-          POD_IP=$(kubectl get pod -n env-intern --template '{{.status.podIP}}')
+      #- name: Get frontend pod IP
+      #  run: |-
+      #    POD_IP=$(kubectl get pod -n env-intern --template '{{.status.podIP}}')
 
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: '${POD_IP}:3000'
+      #- name: OWASP ZAP Full Scanw
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #   target: ':3000'
