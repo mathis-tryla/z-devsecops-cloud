@@ -160,7 +160,7 @@ jobs:
       - name: Forward local port 3000 to the frontend pod
         run: |-
           POD_NAME=$(kubectl get pod -n env-intern -l type=front -o custom-columns=":metadata.name")
-          kubectl port-forward ${POD_NAME} 3000:3000
+          kubectl port-forward ${POD_NAME} 3000:3000 -n env-intern
 
       - name: OWASP ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.4.0
