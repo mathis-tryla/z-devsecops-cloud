@@ -157,12 +157,11 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
           kubectl get all --namespace env-intern
 
-      - name: Forward local port 3000 to the frontend pod
+      - name: Get frontend pod IP
         run: |-
-          POD_NAME=$(kubectl get pod -n env-intern -l type=front -o custom-columns=":metadata.name")
-          kubectl port-forward ${POD_NAME} 3000:3000 -n env-intern
+          POD_IP=$(kubectl get pod -n env-intern --template '{{.status.podIP}}')
 
       - name: OWASP ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.4.0
         with:
-          target: '127.0.0.1:3000'
+          target: '${POD_IP}:3000'
