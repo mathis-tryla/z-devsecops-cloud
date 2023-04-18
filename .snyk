@@ -1,0 +1,3 @@
+file: backend/pom.xml
+test:
+  - dir: frontend
