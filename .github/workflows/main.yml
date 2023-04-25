@@ -172,7 +172,7 @@ jobs:
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
       #    kubectl get all --namespace env-intern
 
-      #- name: OWASP ZAP Full Scanw
+      #- name: OWASP ZAP Full Scan
       #  uses: zaproxy/action-full-scan@v0.4.0
       #  with:
       #   target: ':3000'
