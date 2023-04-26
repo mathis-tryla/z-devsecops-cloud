@@ -4,8 +4,14 @@ metadata:
   name: api-ingress
   namespace: env-intern
 spec:
-  defaultBackend:
-    service:
-      name: api
-      port:
-        number: 8080
+  rules:
+    - host: api.devsecops.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api
+                port:
+                  number: 8080
