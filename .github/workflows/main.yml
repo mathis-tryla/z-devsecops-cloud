@@ -41,76 +41,76 @@ jobs:
           cache: maven
 
       # SAST
-      - name: Create .mvn directory for Snyk
+      #- name: Create .mvn directory for Snyk
+      #  run: |-
+      #    cd ${{ github.workspace }}/backend
+      #    mvn -N io.takari:maven:wrapper
+
+      #- name: Run Snyk to check for Frontend vulnerabilities
+      #  uses: snyk/actions/node@master
+        # TODO: comment the line below in production
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
+
+      #- name: Upload Snyk scan Frontend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-frontend.sarif
+      #    category: 'snyk-frontend'
+
+      #- name: Run Snyk to check for Backend vulnerabilities
+      #  uses: snyk/actions/maven@master
+        # TODO: comment the line below in production
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
+
+      #- name: Upload Snyk scan Backend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-backend.sarif
+      #    category: 'snyk-backend'
+
+      - name: Build with Maven
+        run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential
+        run: |
+          gcloud config set disable_prompts true
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Build frontend docker image
         run: |-
-          cd ${{ github.workspace }}/backend
-          mvn -N io.takari:maven:wrapper
+          docker build \
+            --tag "${{ env.ARTIFACT_REGISTRY }}/frontend" \
+            ${{ env.FRONTEND }}
 
-      - name: Run Snyk to check for Frontend vulnerabilities
-        uses: snyk/actions/node@master
-        # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
-
-      - name: Upload Snyk scan Frontend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-frontend.sarif
-          category: 'snyk-frontend'
-
-      - name: Run Snyk to check for Backend vulnerabilities
-        uses: snyk/actions/maven@master
-        # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
-
-      - name: Upload Snyk scan Backend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-backend.sarif
-          category: 'snyk-backend'
-
-      #- name: Build with Maven
-      #  run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
-
-      #- name: Authenticate to Google Cloud
-      #  uses: google-github-actions/auth@v0
-      #  id: auth
-      #  with:
-      #    create_credentials_file: 'true'
-      #    workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-      #    service_account: ${{ env.SA }}
-
-      #- name: Configure Docker to use the gcloud command-line tool as a credential
-      #  run: |
-      #    gcloud config set disable_prompts true
-      #    gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
-      #    gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
-
-      #- name: Get the GKE credentials
-      #  uses: google-github-actions/get-gke-credentials@v1.0.1
-      #  with:
-      #    project_id: z-devsecops-cloud
-      #    cluster_name: ${{ env.GKE_CLUSTER }}
-      #    location: ${{ env.GKE_ZONE }}
-
-      #- name: Build frontend docker image
-      #  run: |-
-      #    docker build \
-      #      --tag "${{ env.ARTIFACT_REGISTRY }}/frontend" \
-      #      ${{ env.FRONTEND }}
-
-      #- name: Build backend docker image
-      #  run: |-
-      #    docker build \
-      #      --tag "${{ env.ARTIFACT_REGISTRY }}/backend" \
-      #      ${{ env.BACKEND }}
+      - name: Build backend docker image
+        run: |-
+          docker build \
+            --tag "${{ env.ARTIFACT_REGISTRY }}/backend" \
+            ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
       #  env:
@@ -149,28 +149,29 @@ jobs:
       #    SHA_FRONT=$(docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" | grep digest: | cut -f3 -d" ")
       #    SHA_BACK=$(docker push "${{ env.ARTIFACT_REGISTRY }}/backend" | grep digest: | cut -f3 -d" ")
 
-      #- name: Install Cosign
-      #  uses: sigstore/cosign-installer@main
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
 
-      #- name: Sign images with Google KMS key
-      #  run: |-
-      #    cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
-      #    cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
+      - name: Sign images with Google KMS key
+        run: |-
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
-      #- name: Verify signed images
-      #  run: |-
-      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
-      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
+      - name: Verify signed images
+        run: |-
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
 
-      #- name: Deploy docker images to the GKE cluster
-      #  env:
-      #    MANIFESTS: deployment
-      #  run: |-
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
-      #    kubectl get all --namespace env-intern
+      - name: Deploy docker images to the GKE cluster
+        env:
+          MANIFESTS: deployment
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-service.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ingress.yaml
+          kubectl get all --namespace env-intern
 
       #- name: OWASP ZAP Full Scan
       #  uses: zaproxy/action-full-scan@v0.4.0
