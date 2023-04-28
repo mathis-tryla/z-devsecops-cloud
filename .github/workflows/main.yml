@@ -1,4 +1,4 @@
-name: Build images
+name: Main CI
 
 on:
   push:
@@ -7,6 +7,9 @@ on:
 env:
   FRONTEND: ./frontend
   BACKEND: ./backend
+  KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
+  GKE_CLUSTER: z-devsecops-cluster
+  GKE_ZONE: europe-west1-b
   ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
@@ -138,3 +141,65 @@ jobs:
       #  run: |-
       #    SHA_FRONT=$(docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" | grep digest: | cut -f3 -d" ")
       #    SHA_BACK=$(docker push "${{ env.ARTIFACT_REGISTRY }}/backend" | grep digest: | cut -f3 -d" ")
+
+  sign-push-images:
+    runs-on: ubuntu-latest
+    needs: build-images
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      security-events: write
+
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+
+      - name: Sign images with Google KMS key
+        run: |-
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
+
+      - name: Verify signed images
+        run: |-
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
+
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Deploy docker images to the GKE cluster
+        env:
+          MANIFESTS: deployment
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ingress.yml
+          kubectl get all -n env-intern
+
+  dast:
+    runs-on: ubuntu-latest
+    needs: sign-push-images
+    permissions:
+      contents: write
+      security-events: write
+
+    steps:
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'http://34.160.56.1/api/users'
