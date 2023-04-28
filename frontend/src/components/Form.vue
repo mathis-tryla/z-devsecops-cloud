@@ -34,7 +34,7 @@
 <script>
 import axios from 'axios';
 
-const USER_API_BASE_URL = 'http://localhost:8080/api/users';
+const USER_API_BASE_URL = '/api/users';
 
 export default {
   data() {
@@ -46,10 +46,10 @@ export default {
   },
   methods: {
     getUsers: function(){
-      return axios.get(USER_API_BASE_URL);
+      return axios.get(process.env.BASE_URL + USER_API_BASE_URL);
     },
     createUser: function(){
-      return axios.post(USER_API_BASE_URL, 
+      return axios.post(process.env.BASE_URL + USER_API_BASE_URL,
       {
         username: this.username,
         password: this.pwd

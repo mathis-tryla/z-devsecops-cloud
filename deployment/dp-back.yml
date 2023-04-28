@@ -22,5 +22,5 @@ spec:
           image: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/backend:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
-              name: api
+            - name: http
+              containerPort: 8080

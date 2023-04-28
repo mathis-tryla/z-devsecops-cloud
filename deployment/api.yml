@@ -7,6 +7,5 @@ spec:
   selector:
     type: api
   ports:
-    - name: http
-      port: 8080
-      targetPort: 8080
+    - port: 8080
+      targetPort: http
