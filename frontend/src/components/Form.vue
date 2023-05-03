@@ -45,10 +45,10 @@ export default {
     }
   },
   methods: {
-    getUsers: function(){
+    getUsers() {
       return axios.get(USER_API_BASE_URL);
     },
-    createUser: function(){
+    createUser() {
       console.log("username = " + username);
       console.log("pwd = " + pwd)
       return axios.post(USER_API_BASE_URL,
@@ -57,7 +57,7 @@ export default {
         password: this.pwd
       });
     },
-    signIn: function(){
+    signIn() {
         alert("You're signed in!");
     }
   },

@@ -169,9 +169,10 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ingress.yml
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api-ingress.yml
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend-ingress.yml
           kubectl get all --namespace env-intern
 
       #- name: OWASP ZAP Full Scan
