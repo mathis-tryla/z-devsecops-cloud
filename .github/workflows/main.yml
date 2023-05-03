@@ -173,7 +173,7 @@ jobs:
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api-ingress.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend-ingress.yml
-          kubectl get all --namespace env-intern
+      #    kubectl get all --namespace env-intern
 
       #- name: OWASP ZAP Full Scan
       #  uses: zaproxy/action-full-scan@v0.4.0
