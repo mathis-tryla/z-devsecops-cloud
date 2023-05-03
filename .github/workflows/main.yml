@@ -150,21 +150,21 @@ jobs:
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest"
-          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}"
+          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
       - name: Verify signed images
         run: |-
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
       - name: Deploy docker images to the GKE cluster
         env:
