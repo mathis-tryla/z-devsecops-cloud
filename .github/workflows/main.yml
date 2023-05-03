@@ -103,13 +103,15 @@ jobs:
       - name: Build frontend docker image
         run: |-
           docker build \
-            --tag "${{ env.ARTIFACT_REGISTRY }}/frontend" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v1.0.0" \
             ${{ env.FRONTEND }}
 
       - name: Build backend docker image
         run: |-
           docker build \
-            --tag "${{ env.ARTIFACT_REGISTRY }}/backend" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v1.0.0" \
             ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
@@ -146,8 +148,8 @@ jobs:
 
       #- name: Publish docker images to Google Artifact Registry
       #  run: |-
-      #    SHA_FRONT=$(docker push "${{ env.ARTIFACT_REGISTRY }}/frontend" | grep digest: | cut -f3 -d" ")
-      #    SHA_BACK=$(docker push "${{ env.ARTIFACT_REGISTRY }}/backend" | grep digest: | cut -f3 -d" ")
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend"
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
