@@ -35,13 +35,6 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      #- name: Set up JDK 19
-      #  uses: actions/setup-java@v3
-      #  with:
-      #    java-version: '19'
-      #    distribution: 'temurin'
-      #    cache: maven
-
       # SAST
       - name: Create .mvn directory for Snyk
         run: |-
@@ -78,43 +71,50 @@ jobs:
           sarif_file: snyk-backend.sarif
           category: 'snyk-backend'
 
-      #- name: Build with Maven
-      #  run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+          cache: maven
 
-      #- name: Authenticate to Google Cloud
-      #  uses: google-github-actions/auth@v0
-      #  id: auth
-      #  with:
-      #    create_credentials_file: 'true'
-      #    workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
-      #    service_account: ${{ env.SA }}
+      - name: Build with Maven
+        run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
-      #- name: Configure Docker to use the gcloud command-line tool as a credential
-      #  run: |
-      #    gcloud config set disable_prompts true
-      #    gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
-      #    gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
 
-      #- name: Get the GKE credentials
-      #  uses: google-github-actions/get-gke-credentials@v1.0.1
-      #  with:
-      #    project_id: z-devsecops-cloud
-      #    cluster_name: ${{ env.GKE_CLUSTER }}
-      #    location: ${{ env.GKE_ZONE }}
+      - name: Configure Docker to use the gcloud command-line tool as a credential
+        run: |
+          gcloud config set disable_prompts true
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
 
-      #- name: Build frontend docker image
-      #  run: |-
-      #    docker build \
-      #      -t "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
-      #      -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
-      #      ${{ env.FRONTEND }}
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
 
-      #- name: Build backend docker image
-      #  run: |-
-      #    docker build \
-      #      -t "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
-      #      -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
-      #      ${{ env.BACKEND }}
+      - name: Build frontend docker image
+        run: |-
+          docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            ${{ env.FRONTEND }}
+
+      - name: Build backend docker image
+        run: |-
+          docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
       #  env:
@@ -148,31 +148,31 @@ jobs:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
 
-      #- name: Publish docker images to Google Artifact Registry
-      #  run: |-
-      #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}"
-      #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}"
+      - name: Publish docker images to Google Artifact Registry
+        run: |-
+          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}"
+          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}"
 
-      #- name: Install Cosign
-      #  uses: sigstore/cosign-installer@main
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
 
-      #- name: Sign images with Google KMS key
-      #  run: |-
-      #    cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-      #    cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
+      - name: Sign images with Google KMS key
+        run: |-
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
-      #- name: Verify signed images
-      #  run: |-
-      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
+      - name: Verify signed images
+        run: |-
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
-      #- name: Deploy docker images to the GKE cluster
-      #  env:
-      #    MANIFESTS: deployment
-      #  run: |-
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
+      - name: Deploy docker images to the GKE cluster
+        env:
+          MANIFESTS: deployment
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api-ingress.yml
