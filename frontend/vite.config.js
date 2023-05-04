@@ -17,7 +17,10 @@ export default defineConfig({
         '/api': {
             target: process.env.BASE_URL || 'http://localhost:8080',
             ws: true,
-            changeOrigin: true
+            changeOrigin: true,
+            onProxyReq: function(request) {
+                request.setHeader("origin", process.env.BASE_URL || 'http://localhost:8080');
+            }
         }
     }
   }
