@@ -46,7 +46,7 @@ export default {
   },
   methods: {
     getUsers() {
-      return axios.get(USER_API_BASE_URL, {'Accept': 'application/json,text/html'});
+      return axios.get(USER_API_BASE_URL);
     },
     createUser() {
       console.log("username = " + username);
@@ -55,7 +55,7 @@ export default {
       {
         username: this.username,
         password: this.pwd
-      }, {'Accept': 'application/json,text/html'});
+      });
     },
     signIn() {
         alert("You're signed in!");
