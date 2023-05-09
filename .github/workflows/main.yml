@@ -150,36 +150,37 @@ jobs:
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}"
-          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}"
+          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest"
+          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
       - name: Verify signed images
         run: |-
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+      #    cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
       - name: Deploy docker images to the GKE cluster
         env:
           MANIFESTS: deployment
         run: |-
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/my-ns.yml
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/namespace.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
       #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api-ingress.yml
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend-ingress.yml
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml
       #    kubectl get all --namespace env-intern
 
       #- name: OWASP ZAP Full Scan
       #  uses: zaproxy/action-full-scan@v0.4.0
       #  with:
-      #   target: 'http://34.160.56.1/api/users'
+      #   target: 'http://front.34.111.30.200.nip.io'
