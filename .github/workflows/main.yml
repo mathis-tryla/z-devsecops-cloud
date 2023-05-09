@@ -105,13 +105,15 @@ jobs:
       - name: Build frontend docker image
         run: |-
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }} \
             ${{ env.FRONTEND }}
 
       - name: Build backend docker image
         run: |-
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }} \
             ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
@@ -146,16 +148,10 @@ jobs:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
 
-      - name: Tag docker images with versions
-        run: |-
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-          docker images
-
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:latest:v${{ env.MAJOR }}.${{ env.MINOR }}
-          docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest:v${{ env.MAJOR }}.${{ env.MINOR }}
+          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
+          docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
