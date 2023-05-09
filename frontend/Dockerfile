@@ -29,7 +29,7 @@ RUN rm -rf /usr/share/nginx/html/*
 # Copy from the stage 1
 COPY --from=0 /app/dist /usr/share/nginx/html
 
-EXPOSE 3000
+EXPOSE 80
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
 
