@@ -46,15 +46,23 @@ export default {
   },
   methods: {
     getUsers() {
-      return axios.get(USER_API_BASE_URL);
+      return axios.get(USER_API_BASE_URL, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
     },
     createUser() {
       console.log("username = " + username);
       console.log("pwd = " + pwd)
-      return axios.post(USER_API_BASE_URL,
-      {
+      data = {
         username: this.username,
         password: this.pwd
+      }
+      return axios.post(USER_API_BASE_URL, data, {
+        headers: {
+          'Accept': 'application/json'
+        }
       });
     },
     signIn() {
