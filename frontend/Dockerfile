@@ -16,8 +16,23 @@ RUN npm install
 COPY . .
 
 # build app for production with minification
-#RUN npm run build
+RUN npm run build
 
-EXPOSE 3000
 
-CMD [ "npm", "run", "dev" ]
+FROM nginx:alpine
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+## Remove default nginx index page
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy from the stage 1
+COPY --from=0 /app/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+
+#EXPOSE 3000
+
+#CMD [ "npm", "run", "dev" ]
