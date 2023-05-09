@@ -150,11 +150,12 @@ jobs:
         run: |-
           docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
           docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          docker images
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest"
-          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          docker push ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
