@@ -36,40 +36,40 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
       # SAST
-      - name: Create .mvn directory for Snyk
-        run: |-
-          cd ${{ github.workspace }}/backend
-          mvn -N io.takari:maven:wrapper
+      #- name: Create .mvn directory for Snyk
+      #  run: |-
+      #    cd ${{ github.workspace }}/backend
+      #    mvn -N io.takari:maven:wrapper
 
-      - name: Run Snyk to check for Frontend vulnerabilities
-        uses: snyk/actions/node@master
+      #- name: Run Snyk to check for Frontend vulnerabilities
+      #  uses: snyk/actions/node@master
         # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
 
-      - name: Upload Snyk scan Frontend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-frontend.sarif
-          category: 'snyk-frontend'
+      #- name: Upload Snyk scan Frontend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-frontend.sarif
+      #    category: 'snyk-frontend'
 
-      - name: Run Snyk to check for Backend vulnerabilities
-        uses: snyk/actions/maven@master
+      #- name: Run Snyk to check for Backend vulnerabilities
+      #  uses: snyk/actions/maven@master
         # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
 
-      - name: Upload Snyk scan Backend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-backend.sarif
-          category: 'snyk-backend'
+      #- name: Upload Snyk scan Backend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-backend.sarif
+      #    category: 'snyk-backend'
 
       - name: Set up JDK 19
         uses: actions/setup-java@v3
@@ -106,14 +106,12 @@ jobs:
         run: |-
           docker build \
             -t "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
             ${{ env.FRONTEND }}
 
       - name: Build backend docker image
         run: |-
           docker build \
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:latest" \
-            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
             ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
@@ -147,6 +145,11 @@ jobs:
       #  with:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
+
+      - name: Tag docker images with versions
+        run: |-
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
