@@ -23,5 +23,5 @@ spec:
                 name: api
                 port:
                   number: 8080
-            path: /profile
+            path: /api
             pathType: Prefix
