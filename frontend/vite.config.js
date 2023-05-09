@@ -12,7 +12,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 80/*,
+    port: 3000/*,
     proxy: {
         '/api': {
             target: process.env.BASE_URL || 'http://localhost:8080',
