@@ -146,15 +146,12 @@ jobs:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
 
-      - name: Tag docker images with versions
-        run: |-
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}
-
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest"
-          docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest"
+          docker push -a "${{ env.ARTIFACT_REGISTRY }}/frontend"
+          docker push -a "${{ env.ARTIFACT_REGISTRY }}/backend"
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/frontend:latest" "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}"
+      #    docker push "${{ env.ARTIFACT_REGISTRY }}/backend:latest" "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}"
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
