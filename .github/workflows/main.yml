@@ -14,7 +14,7 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
   MAJOR: 1
-  MINOR: 0.0
+  MINOR: "2.0"
 
 jobs:
   build-and-push-images:
@@ -24,6 +24,7 @@ jobs:
       packages: write
       id-token: write
       security-events: write
+      issues: write
 
     steps:
       - name: Checkout code
@@ -35,7 +36,7 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      # SAST
+      ## SAST
       #- name: Create .mvn directory for Snyk
       #  run: |-
       #    cd ${{ github.workspace }}/backend
@@ -176,9 +177,11 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml
-      #    kubectl get all --namespace env-intern
 
-      #- name: OWASP ZAP Full Scan
-      #  uses: zaproxy/action-full-scan@v0.4.0
-      #  with:
-      #   target: 'http://front.34.111.30.200.nip.io'
+      ## DAST
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'https://front.34.111.30.200.nip.io'
+          cmd_options: "-d" #show debug messages
+          docker_name: 'owasp/zap2docker-stable'
