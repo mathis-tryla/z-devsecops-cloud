@@ -1,8 +1,5 @@
 FROM node:lts-alpine
 
-# install simple http server for serving static content
-# RUN npm install -g http-server
-
 # make the 'app' folder the current working directory
 WORKDIR /app
 
@@ -32,7 +29,3 @@ COPY --from=0 /app/dist /usr/share/nginx/html
 EXPOSE 3000
 
 ENTRYPOINT ["nginx", "-g", "daemon off;"]
-
-#EXPOSE 3000
-
-#CMD [ "npm", "run", "dev" ]

@@ -7,5 +7,6 @@ backend/.mvn
 
 frontend/node_modules
 frontend/.vscode
+frontend/frontend.iml
 
 deployment/managed-certificate.yml
