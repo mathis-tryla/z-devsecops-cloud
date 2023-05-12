@@ -12,6 +12,11 @@ import jakarta.persistence.Entity;
 @Setter
 public class User {
 
+    /**
+     * Username field relates to the username form input
+     * where users can type their username or their email.
+     * It is what makes the user unique.
+     */
     @jakarta.persistence.Id
     @Column(name = "USERNAME")
     private String username;
