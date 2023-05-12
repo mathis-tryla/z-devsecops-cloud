@@ -106,12 +106,18 @@ jobs:
       - name: Build frontend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.FRONTEND }}
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t ${{ github.sha }} \
+          ${{ env.FRONTEND }}
 
       - name: Build backend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.BACKEND }}
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t ${{ github.sha }} \
+          ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
       #  env:
@@ -150,8 +156,17 @@ jobs:
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --upload=false --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign sign --yes --upload=false --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+      - name: Add cosign tag to images
+        run: |-
+          FRONT_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/frontend:latest)
+          BACK_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/backend:latest)
+          FRONT_SHA=$(cut -d':' -f2 <<< $FRONT_SHA)
+          BACK_SHA=$(cut -d':' -f2 <<< $BACK_SHA)
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
 
       - name: Verify signed images
         run: |-
