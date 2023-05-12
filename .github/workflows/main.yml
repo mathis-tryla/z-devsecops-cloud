@@ -155,16 +155,13 @@ jobs:
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} \
-          -a "version=${{ env.MAJOR }}.${{ env.MINOR }}" \
-          -a "ref=${{ github.sha }}" \
-          ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          
-          cosign sign --yes --key ${{ env.KMS }} \
-          -a "version=${{ env.MAJOR }}.${{ env.MINOR }}" \
-          -a "ref=${{ github.sha }}" \
-          ${{ env.ARTIFACT_REGISTRY }}/backend:latest
-          
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+      - name: Attach version tag to images
+        run: |-
+          cosign attach signature --signature v${{ env.MAJOR }}.${{ env.MINOR }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign attach signature --signature v${{ env.MAJOR }}.${{ env.MINOR }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
       - name: Verify signed images
         run: |-
