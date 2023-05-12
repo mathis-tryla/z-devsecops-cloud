@@ -14,7 +14,7 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
   MAJOR: 1
-  MINOR: "2.0"
+  MINOR: "3.0"
 
 jobs:
   build-and-push-images:
@@ -106,16 +106,12 @@ jobs:
       - name: Build frontend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
-            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }} \
-            ${{ env.FRONTEND }}
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.FRONTEND }}
 
       - name: Build backend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
-            -t ${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }} \
-            ${{ env.BACKEND }}
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.BACKEND }}
 
       #- name: Run Trivy vulnerability scanner for frontend
       #  env:
@@ -159,8 +155,16 @@ jobs:
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign sign --yes --key ${{ env.KMS }} \
+          -a "version=${{ env.MAJOR }}.${{ env.MINOR }}" \
+          -a "ref=${{ github.sha }}" \
+          ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          
+          cosign sign --yes --key ${{ env.KMS }} \
+          -a "version=${{ env.MAJOR }}.${{ env.MINOR }}" \
+          -a "ref=${{ github.sha }}" \
+          ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          
 
       - name: Verify signed images
         run: |-
