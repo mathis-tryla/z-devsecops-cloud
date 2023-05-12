@@ -145,28 +145,23 @@ jobs:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
 
-      #- name: Publish docker images to Google Artifact Registry
-      #  run: |-
-      #    docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
-      #    docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
-
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
-
-      - name: Attach version tag to images
-        run: |-
-          cosign attach signature --signature v${{ env.MAJOR }}.${{ env.MINOR }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign attach signature --signature v${{ env.MAJOR }}.${{ env.MINOR }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign sign --yes --upload=false --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign sign --yes --upload=false --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
       - name: Verify signed images
         run: |-
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+      - name: Publish docker images to Google Artifact Registry
+        run: |-
+          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
+          docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
 
       - name: Deploy docker images to the GKE cluster
         env:
