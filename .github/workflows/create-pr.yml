@@ -4,20 +4,223 @@ on:
   push:
     branches: [ "eph" ]
 
+env:
+  FRONTEND: ./frontend
+  BACKEND: ./backend
+  GITHUB_REPOSITORY: https://github.com/mathis-tryla/z-devsecops-cloud
+  ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
+  GKE_CLUSTER: z-devsecops-cluster
+  GKE_ZONE: europe-west1-b
+  SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
+  WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
+  MAJOR: 1
+  MINOR: "4.0"
+
 jobs:
   create-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
+      id-token: write
+      security-events: write
+      issues: write
+      statuses: write
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+      - name: Check if PR exists
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list \
+           --repo "${{ env.GITHUB_REPOSITORY }}" \
+           --json baseRefName,headRefName \
+           --jq '
+               map(select(.baseRefName == "main" and .headRefName == "eph"))
+               | length
+           ')
+          if ((prs > 0)); then
+           echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR
+        if: '!steps.check.outputs.skip'
+        run: |-
+          gh pr create -B main -H eph --title 'Merge eph into main' \
+          --body 'Created by Github action' \
+          -a mathis-tryla -r mathis-tryla -l automated-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Cache Maven packages
+        uses: actions/cache@v3
         with:
-          token: ${{ secrets.PAT }}
-          delete-branch: true
-          assignees: mathis-tryla
-          reviewers: mathis-tryla
-          base: eph
-          branch: main
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+
+        ## SAST
+        #- name: Create .mvn directory for Snyk
+        #  run: |-
+        #    cd ${{ github.workspace }}/backend
+        #    mvn -N io.takari:maven:wrapper
+
+        #- name: Run Snyk to check for Frontend vulnerabilities
+        #  uses: snyk/actions/node@master
+        # TODO: comment the line below in production
+        #  continue-on-error: true
+        #  env:
+        #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        #  with:
+        #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
+
+        #- name: Upload Snyk scan Frontend results to GitHub Security tab
+        #  uses: github/codeql-action/upload-sarif@v2
+        #  with:
+        #    sarif_file: snyk-frontend.sarif
+        #    category: 'snyk-frontend'
+
+        #- name: Run Snyk to check for Backend vulnerabilities
+        #  uses: snyk/actions/maven@master
+        # TODO: comment the line below in production
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
+
+      #- name: Upload Snyk scan Backend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-backend.sarif
+      #    category: 'snyk-backend'
+
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+
+      #- name: Lint Code Base
+      #  uses: github/super-linter@v5
+      #  env:
+      #    VALIDATE_ALL_CODEBASE: true
+      #    DEFAULT_BRANCH: main
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential
+        run: |
+          gcloud config set disable_prompts true
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Build frontend docker image
+        run: |-
+          docker build \
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t ${{ github.sha }} \
+          ${{ env.FRONTEND }}
+
+      - name: Build backend docker image
+        run: |-
+          docker build \
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t ${{ github.sha }} \
+          ${{ env.BACKEND }}
+
+      #- name: Run Trivy vulnerability scanner for frontend
+      #  env:
+      #    TRIVY_USERNAME: ""
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+      #    scan-ref: ${{ github.workspace }}/frontend
+      #    format: 'sarif'
+      #    output: 'trivy-results-frontend.sarif'
+
+      #- name: Run Trivy vulnerability scanner for backend
+      #  env:
+      #    TRIVY_USERNAME: ""
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+      #    scan-ref: ${{ github.workspace }}/backend
+      #    format: 'sarif'
+      #    output: 'trivy-results-backend.sarif'
+
+      #- name: Upload Trivy scan results to GitHub Security tab frontend
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: 'trivy-results-frontend.sarif'
+      #    category: 'frontend'
+
+      #- name: Upload Trivy scan results to GitHub Security tab backend
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: 'trivy-results-backend.sarif'
+      #    category: 'backend'
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+
+      - name: Sign images with Google KMS key
+        run: |-
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+      - name: Add cosign tag to images
+        run: |-
+          FRONT_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/frontend:latest)
+          BACK_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/backend:latest)
+          FRONT_SHA=$(cut -d':' -f2 <<< $FRONT_SHA)
+          BACK_SHA=$(cut -d':' -f2 <<< $BACK_SHA)
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
+          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
+
+      - name: Verify signed images
+        run: |-
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+
+      - name: Publish docker images to Google Artifact Registry
+        run: |-
+          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
+          docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
+
+      - name: Deploy docker images to the GKE cluster in eph
+        env:
+          MANIFESTS: deployment
+          DEPLOYMENTS: deployment/dp
+          NAMESPACES: deployment/namespaces
+          SERVICES: deployment/services
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/eph.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n eph
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n eph
