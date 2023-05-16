@@ -1,0 +1,23 @@
+name: Create PR
+
+on:
+  push:
+    branches: [ "eph" ]
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.PAT }}
+          delete-branch: true
+          assignees: mathis-tryla
+          reviewers: mathis-tryla
+          base: eph
+          branch: main
