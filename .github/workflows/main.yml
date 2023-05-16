@@ -14,7 +14,7 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
   MAJOR: 1
-  MINOR: "3.0"
+  MINOR: "4.0"
 
 jobs:
   build-and-push-images:
@@ -181,10 +181,13 @@ jobs:
       - name: Deploy docker images to the GKE cluster
         env:
           MANIFESTS: deployment
+          DEPLOYMENTS: deployment/dp
+          NAMESPACES: deployment/namespaces
+          SERVICES: deployment/services
         run: |-
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/namespace.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-front.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/dp-back.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/api.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/frontend.yml
-          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n prod

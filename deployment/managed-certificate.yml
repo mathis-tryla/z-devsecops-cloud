@@ -2,7 +2,6 @@ apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
   name: managed-cert
-  namespace: env-intern
 spec:
   domains:
     - front.34.111.30.200.nip.io
