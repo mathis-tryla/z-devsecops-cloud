@@ -1,8 +1,8 @@
-name: Security workflow
+name: DAST
 
 on:
   pull_request:
-    types: [opened, reopened, closed]
+    types: [ closed ]
 
 jobs:
   DAST:
