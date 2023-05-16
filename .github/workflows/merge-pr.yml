@@ -1,0 +1,35 @@
+on:
+  pull_request:
+    types: [closed]
+
+env:
+
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      security-events: write
+      issues: write
+      statuses: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Delete eph branch
+        uses: SvanBoxel/delete-merged-branch@main
+
+      - name: Deploy docker images to the GKE cluster in prod
+        env:
+          MANIFESTS: deployment
+          DEPLOYMENTS: deployment/dp
+          NAMESPACES: deployment/namespaces
+          SERVICES: deployment/services
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
