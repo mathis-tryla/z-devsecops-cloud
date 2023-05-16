@@ -1,8 +1,8 @@
 name: Main CI
 
 on:
-  push:
-    branches: [ "main" ]
+  pull_request:
+    types: [ opened ]
 
 env:
   FRONTEND: ./frontend
@@ -25,6 +25,7 @@ jobs:
       id-token: write
       security-events: write
       issues: write
+      statuses: write
 
     steps:
       - name: Checkout code
@@ -81,6 +82,13 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+
+      #- name: Lint Code Base
+      #  uses: github/super-linter@v5
+      #  env:
+      #    VALIDATE_ALL_CODEBASE: true
+      #    DEFAULT_BRANCH: main
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
@@ -185,9 +193,21 @@ jobs:
           NAMESPACES: deployment/namespaces
           SERVICES: deployment/services
         run: |-
-          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/eph.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n eph
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n eph
+
+      - id: automerge
+        name: Automerge eph->main
+        uses: "pascalgn/automerge-action@v0.15.6"
+
+      - name: Merge feedback
+        if: steps.automerge.outputs.mergeResult == "merged"
+        run: |
+          echo "Pull request ${{ steps.automerge.outputs.pullRequestNumber }} merged!"
+
+      - name: Delete eph branch
+        uses: SvanBoxel/delete-merged-branch@eph
