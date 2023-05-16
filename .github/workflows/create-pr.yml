@@ -1,12 +1,13 @@
-name: Main CI
+name: Create PR
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "eph" ]
 
 env:
   FRONTEND: ./frontend
   BACKEND: ./backend
+  GITHUB_REPOSITORY: https://github.com/mathis-tryla/z-devsecops-cloud
   ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   GKE_CLUSTER: z-devsecops-cluster
   GKE_ZONE: europe-west1-b
@@ -17,7 +18,7 @@ env:
   MINOR: "4.0"
 
 jobs:
-  build-and-push-images:
+  create-pr:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,10 +26,35 @@ jobs:
       id-token: write
       security-events: write
       issues: write
+      statuses: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+
+      - name: Check if PR exists
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list \
+           --repo "${{ env.GITHUB_REPOSITORY }}" \
+           --json baseRefName,headRefName \
+           --jq '
+               map(select(.baseRefName == "main" and .headRefName == "eph"))
+               | length
+           ')
+          if ((prs > 0)); then
+           echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create PR
+        if: '!steps.check.outputs.skip'
+        run: |-
+          gh pr create -B main -H eph --title 'Merge eph into main' \
+          --body 'Created by Github action' \
+          -a mathis-tryla -r mathis-tryla -l automated-pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -36,29 +62,29 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      ## SAST
-      #- name: Create .mvn directory for Snyk
-      #  run: |-
-      #    cd ${{ github.workspace }}/backend
-      #    mvn -N io.takari:maven:wrapper
+        ## SAST
+        #- name: Create .mvn directory for Snyk
+        #  run: |-
+        #    cd ${{ github.workspace }}/backend
+        #    mvn -N io.takari:maven:wrapper
 
-      #- name: Run Snyk to check for Frontend vulnerabilities
-      #  uses: snyk/actions/node@master
+        #- name: Run Snyk to check for Frontend vulnerabilities
+        #  uses: snyk/actions/node@master
         # TODO: comment the line below in production
-      #  continue-on-error: true
-      #  env:
-      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      #  with:
-      #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
+        #  continue-on-error: true
+        #  env:
+        #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        #  with:
+        #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
 
-      #- name: Upload Snyk scan Frontend results to GitHub Security tab
-      #  uses: github/codeql-action/upload-sarif@v2
-      #  with:
-      #    sarif_file: snyk-frontend.sarif
-      #    category: 'snyk-frontend'
+        #- name: Upload Snyk scan Frontend results to GitHub Security tab
+        #  uses: github/codeql-action/upload-sarif@v2
+        #  with:
+        #    sarif_file: snyk-frontend.sarif
+        #    category: 'snyk-frontend'
 
-      #- name: Run Snyk to check for Backend vulnerabilities
-      #  uses: snyk/actions/maven@master
+        #- name: Run Snyk to check for Backend vulnerabilities
+        #  uses: snyk/actions/maven@master
         # TODO: comment the line below in production
       #  continue-on-error: true
       #  env:
@@ -81,6 +107,13 @@ jobs:
 
       - name: Build with Maven
         run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
+
+      #- name: Lint Code Base
+      #  uses: github/super-linter@v5
+      #  env:
+      #    VALIDATE_ALL_CODEBASE: true
+      #    DEFAULT_BRANCH: main
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
@@ -178,7 +211,30 @@ jobs:
           docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
           docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
 
-      - name: Deploy docker images to the GKE cluster
+      - name: Deploy docker images to the GKE cluster in eph
+        env:
+          MANIFESTS: deployment
+          DEPLOYMENTS: deployment/dp
+          NAMESPACES: deployment/namespaces
+          SERVICES: deployment/services
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/eph.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n eph
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n eph
+      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n eph
+
+      - id: automerge
+        name: Automerge eph->main
+        uses: "pascalgn/automerge-action@v0.15.6"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT }}
+
+      - name: Delete eph branch
+        uses: SvanBoxel/delete-merged-branch@main
+
+      - name: Deploy docker images to the GKE cluster in prod
         env:
           MANIFESTS: deployment
           DEPLOYMENTS: deployment/dp
@@ -190,4 +246,3 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n prod
