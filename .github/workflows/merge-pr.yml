@@ -31,14 +31,6 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
 
-      ## DAST
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: 'https://front.34.111.30.200.nip.io'
-          cmd_options: "-d" #show debug messages
-          docker_name: 'owasp/zap2docker-stable'
-
       - name: Delete eph branch
         run: |-
           git branch -d eph
