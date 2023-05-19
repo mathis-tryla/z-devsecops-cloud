@@ -1,8 +1,8 @@
-name: Create PR
+name: Build and Push to eph
 
 on:
-  push:
-    branches: [ "eph" ]
+  pull_request:
+    types: [ opened, synchronize ]
 
 env:
   FRONTEND: ./frontend
@@ -15,10 +15,10 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
   MAJOR: 1
-  MINOR: "4.0"
+  MINOR: "5.0"
 
 jobs:
-  create-pr:
+  build-and-push-images-eph:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -31,30 +31,30 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Check if PR exists
-        id: check
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          prs=$(gh pr list \
-           --repo "${{ env.GITHUB_REPOSITORY }}" \
-           --json baseRefName,headRefName \
-           --jq '
-               map(select(.baseRefName == "main" and .headRefName == "eph"))
-               | length
-           ')
-          if ((prs > 0)); then
-           echo "skip=true" >> "$GITHUB_OUTPUT"
-          fi
+      #- name: Check if PR exists
+      #  id: check
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #  run: |
+      #    prs=$(gh pr list \
+      #     --repo "${{ env.GITHUB_REPOSITORY }}" \
+      #     --json baseRefName,headRefName \
+      #     --jq '
+      #         map(select(.baseRefName == "main" and .headRefName == "eph"))
+      #         | length
+      #     ')
+      #    if ((prs > 0)); then
+      #     echo "skip=true" >> "$GITHUB_OUTPUT"
+      #    fi
 
-      - name: Create PR
-        if: '!steps.check.outputs.skip'
-        run: |-
-          gh pr create -B main -H eph --title 'Merge eph into main' \
-          --body 'Created by Github action' \
-          -a mathis-tryla -r mathis-tryla -l automated-pr
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT }}
+      #- name: Create PR
+      #  if: '!steps.check.outputs.skip'
+      #  run: |-
+      #    gh pr create -B main -H eph --title 'Merge eph into main' \
+      #    --body 'Created by Github action' \
+      #    -a mathis-tryla -r mathis-tryla -l automated-pr
+      #  env:
+      #    GITHUB_TOKEN: ${{ secrets.PAT }}
 
       - name: Cache Maven packages
         uses: actions/cache@v3
