@@ -1,0 +1,67 @@
+name: Push to prod
+
+on:
+  pull_request:
+    types: [ closed ]
+
+env:
+  GKE_CLUSTER: z-devsecops-cluster
+  GKE_ZONE: europe-west1-b
+  SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
+  WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      security-events: write
+      issues: write
+      statuses: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      ## DAST
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'https://front.34.111.30.200.nip.io'
+          cmd_options: "-d" #show debug messages
+          docker_name: 'owasp/zap2docker-stable'
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential
+        run: |
+          gcloud config set disable_prompts true
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
+      - name: Deploy docker images to the GKE cluster in prod
+        env:
+          MANIFESTS: deployment
+          DEPLOYMENTS: deployment/dp
+          NAMESPACES: deployment/namespaces
+          SERVICES: deployment/services
+        run: |-
+          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
