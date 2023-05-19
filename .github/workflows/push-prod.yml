@@ -11,7 +11,7 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
 
 jobs:
-  merge-pr:
+  push-images-prod:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,7 +61,7 @@ jobs:
           SERVICES: deployment/services
         run: |-
           kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n prod
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n prod
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n env-intern
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n env-intern
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern
