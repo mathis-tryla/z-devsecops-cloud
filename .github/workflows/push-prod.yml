@@ -65,3 +65,6 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern
+
+      - name: Delete all resources from eph namespace
+        run: kubectl delete all --all -n eph
