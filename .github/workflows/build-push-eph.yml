@@ -14,8 +14,8 @@ env:
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
-  MAJOR: 1
-  MINOR: "5.0"
+  MAJOR: "1"
+  MINOR: "5.1"
 
 jobs:
   build-and-push-images-eph:
@@ -184,6 +184,11 @@ jobs:
       #    sarif_file: 'trivy-results-backend.sarif'
       #    category: 'backend'
 
+      - name: Publish docker images to Google Artifact Registry
+        run: |-
+          FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags)
+          BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags)
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
 
@@ -192,24 +197,24 @@ jobs:
           cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
           cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
 
-      - name: Add cosign tag to images
-        run: |-
-          FRONT_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/frontend:latest)
-          BACK_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/backend:latest)
-          FRONT_SHA=$(cut -d':' -f2 <<< $FRONT_SHA)
-          BACK_SHA=$(cut -d':' -f2 <<< $BACK_SHA)
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
-          docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
+      #- name: Add cosign tag to images
+      #  run: |-
+      #    FRONT_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/frontend:latest)
+      #    BACK_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/backend:latest)
+      #    FRONT_SHA=$(cut -d':' -f2 <<< $FRONT_SHA)
+      #    BACK_SHA=$(cut -d':' -f2 <<< $BACK_SHA)
+      #    docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
+      #    docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
+
+      #- name: Publish docker images to Google Artifact Registry
+      #  run: |-
+      #    FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags | grep digest:)
+      #    BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags)
 
       - name: Verify signed images
         run: |-
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
-
-      - name: Publish docker images to Google Artifact Registry
-        run: |-
-          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
-          docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
 
       - name: Deploy docker images to the GKE cluster in eph
         env:

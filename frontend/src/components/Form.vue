@@ -45,6 +45,14 @@ export default {
     }
   },
   methods: {
+    getUser(username) {
+      const url = USER_API_BASE_URL + '/' + username
+      return axios.get(url, {
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+    },
     getUsers() {
       return axios.get(USER_API_BASE_URL, {
         headers: {
@@ -53,11 +61,11 @@ export default {
       });
     },
     createUser() {
-      console.log("username = " + username);
-      console.log("pwd = " + pwd)
+      console.log("username = " + this.username);
+      console.log("pwd = " + this.password)
       data = {
         username: this.username,
-        password: this.pwd
+        password: this.password
       }
       return axios.post(USER_API_BASE_URL, data, {
         headers: {
@@ -66,10 +74,18 @@ export default {
       });
     },
     signIn() {
+      var isEmpty = (this.username == '' || this.password == '');
+      var response = getUser(this.username);
+      var isUser = (response.status >= 200 && response.status < 400);
+      if(!isEmpty && isUser){
         alert("You're signed in!");
+      } else {
+        alert("Unknown user!");
+      }
     }
   },
   created(){
+    this.getUser(this.username)
     this.getUsers()
     this.createUser()
     this.signIn()
