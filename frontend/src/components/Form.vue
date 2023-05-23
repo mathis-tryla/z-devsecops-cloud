@@ -63,7 +63,7 @@ export default {
     createUser() {
       console.log("username = " + this.username);
       console.log("password = " + this.password)
-      data = {
+      var data = {
         username: this.username,
         password: this.password
       }
