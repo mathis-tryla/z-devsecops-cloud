@@ -64,8 +64,8 @@ export default {
       console.log("username = " + username);
       console.log("pwd = " + pwd)
       data = {
-        username: this.username,
-        password: this.pwd
+        username: this.username.data,
+        password: this.password.data
       }
       return axios.post(USER_API_BASE_URL, data, {
         headers: {
