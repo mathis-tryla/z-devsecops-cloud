@@ -75,24 +75,17 @@ export default {
     },
     signIn() {
       var isEmpty = (this.username == '' || this.password == '');
-      const { data, status } = this.getUser(this.username);
-      //console.log(response);
-      console.log("status = " + status);
+      const { data } = this.getUser(this.username);
+      console.log("status = " + data.status);
+      var isUser = (data.status >= 200 && data.status < 400);
       console.log("isEmpty = " + isEmpty);
       console.log("isUser = " + isUser);
-      var isUser = (status >= 200 && status < 400);
       if(!isEmpty && isUser){
         alert("You're signed in!");
       } else {
         alert("Unknown user!");
       }
     }
-  },
-  created(){
-    this.getUser()
-    this.getUsers()
-    this.createUser()
-    this.signIn()
   }
 }
 </script>
