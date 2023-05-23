@@ -75,12 +75,12 @@ export default {
     },
     signIn() {
       var isEmpty = (this.username == '' || this.password == '');
-      var response = this.getUser(this.username);
-      console.log(response);
-      console.log("status = " + response.status);
+      const { data, status } = this.getUser(this.username);
+      //console.log(response);
+      console.log("status = " + status);
       console.log("isEmpty = " + isEmpty);
       console.log("isUser = " + isUser);
-      var isUser = (response.status >= 200 && response.status < 400);
+      var isUser = (status >= 200 && status < 400);
       if(!isEmpty && isUser){
         alert("You're signed in!");
       } else {
