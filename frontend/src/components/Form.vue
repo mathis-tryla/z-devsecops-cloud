@@ -78,6 +78,7 @@ export default {
       var response = this.getUser(this.username);
       var isUser = (response.status >= 200 && response.status < 400);
       console.log(response);
+      console.log("status = " + response.status);
       console.log("isEmpty = " + isEmpty);
       console.log("isUser = " + isUser);
       if(!isEmpty && isUser){
