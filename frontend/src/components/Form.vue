@@ -61,11 +61,11 @@ export default {
       });
     },
     createUser() {
-      console.log("username = " + username);
-      console.log("pwd = " + pwd)
+      console.log("username = " + this.username);
+      console.log("pwd = " + this.password)
       data = {
-        username: this.username.data,
-        password: this.password.data
+        username: this.username,
+        password: this.password
       }
       return axios.post(USER_API_BASE_URL, data, {
         headers: {
