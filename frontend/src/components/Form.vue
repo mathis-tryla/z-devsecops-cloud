@@ -15,7 +15,7 @@
                   <label for="password">Password</label>
               </div>
               <div class="col-75">
-                  <input type="text" id="password" name="password" placeholder="Your password" v-model="pwd" required>
+                  <input type="text" id="password" name="password" placeholder="Your password" v-model="password" required>
               </div>
           </div>
           <div class="row" style="margin-top:10%">
@@ -41,7 +41,7 @@ export default {
     return {
       clicked: false, 
       username: '', 
-      pwd: ''
+      password: ''
     }
   },
   methods: {
@@ -62,8 +62,8 @@ export default {
     },
     createUser() {
       console.log("username = " + this.username);
-      console.log("pwd = " + this.password)
-      data = {
+      console.log("password = " + this.password)
+      var data = {
         username: this.username,
         password: this.password
       }
@@ -75,7 +75,7 @@ export default {
     },
     signIn() {
       var isEmpty = (this.username == '' || this.password == '');
-      var response = getUser(this.username);
+      var response = this.getUser(this.username);
       var isUser = (response.status >= 200 && response.status < 400);
       if(!isEmpty && isUser){
         alert("You're signed in!");
