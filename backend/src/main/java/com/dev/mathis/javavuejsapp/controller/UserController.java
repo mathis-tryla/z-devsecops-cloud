@@ -27,7 +27,7 @@ public class UserController {
     }
 
     @GetMapping("/users/{username}")
-    User getUser(String username) {
+    String getUser(String username) {
         return userService.findUserByUsername(username);
     }
 

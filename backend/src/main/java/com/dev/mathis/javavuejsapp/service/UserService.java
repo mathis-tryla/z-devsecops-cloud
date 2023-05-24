@@ -23,12 +23,12 @@ public class UserService {
     }
 
     @Transactional
-    public User findUserByUsername(@PathVariable String username) { 
+    public String findUserByUsername(@PathVariable String username) { 
         List<User> users = getUsers();
         for(User user : users)
             if(user.getUsername() == username)
-                return user;
-        return null;
+                return "{\"username\": " + user.getUsername() + ", \"password\": " + user.getPassword() + "}";
+        return "null";
     }
 
     @Transactional
