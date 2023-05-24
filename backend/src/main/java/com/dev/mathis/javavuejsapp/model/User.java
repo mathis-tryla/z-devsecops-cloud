@@ -3,8 +3,6 @@ package com.dev.mathis.javavuejsapp.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Objects;
-
 import javax.persistence.*;
 import jakarta.persistence.Entity;
 
