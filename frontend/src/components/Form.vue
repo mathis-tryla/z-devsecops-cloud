@@ -86,12 +86,6 @@ export default {
         alert("Unknown user!");
       }
     }
-  },
-  created(){
-    this.getUser()
-    this.getUsers()
-    this.createUser()
-    this.signIn()
   }
 }
 </script>
