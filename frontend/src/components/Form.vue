@@ -76,7 +76,7 @@ export default {
     signIn() {
       var isEmpty = (this.username == '' || this.password == '');
       const { data } = this.getUser(this.username);
-      console.log("status = " + data.status);
+      console.log("data = " + data);
       var isUser = (data.status >= 200 && data.status < 400);
       console.log("isEmpty = " + isEmpty);
       console.log("isUser = " + isUser);
