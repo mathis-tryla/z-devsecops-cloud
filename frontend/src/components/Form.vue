@@ -76,7 +76,7 @@ export default {
     signIn() {
       var isEmpty = (this.username == '' || this.password == '');
       this.getUser(this.username).then((response) => {
-        console.log("response = " + response);
+        console.log("response = " + JSON.stringify(response));
       });
       /*var isUser = (data.status >= 200 && data.status < 400);
       console.log("isEmpty = " + isEmpty);
