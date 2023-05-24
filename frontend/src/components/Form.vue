@@ -45,9 +45,13 @@ export default {
     }
   },
   methods: {
-    getUser() {
-      const url = USER_API_BASE_URL + '/' + this.username
-      return axios.get(url, {
+    getUser(username, password) {
+      const url = USER_API_BASE_URL + '/' + username
+      const data = {
+        username: username,
+        password: password
+      }
+      return axios.get(url, data, {
         headers: {
           'Accept': 'application/json'
         }
@@ -63,7 +67,7 @@ export default {
     createUser() {
       console.log("username = " + this.username);
       console.log("password = " + this.password)
-      var data = {
+      const data = {
         username: this.username,
         password: this.password
       }
@@ -74,10 +78,10 @@ export default {
       });
     },
     signIn() {
-      this.getUser(this.username).then((response) => {
+      this.getUser(this.username, this.password).then((response) => {
         console.log("response = " + JSON.stringify(response));
         var status = response.status;
-        var isUser = (status >= 200 && status < 400);
+        var isUser = (status >= 200 && status < 400) && (response.data.length > 0);
         var isEmpty = (this.username == '' || this.password == '');
 
         console.log("isEmpty = " + isEmpty);
