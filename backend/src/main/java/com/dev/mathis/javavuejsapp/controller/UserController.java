@@ -26,9 +26,9 @@ public class UserController {
         return userService.getUsers();
     }
 
-    @GetMapping("/users/{username}")
-    User getUser(String username) {
-        return userService.findUserByUsername(username);
+    @GetMapping("/users")
+    User getUser(@RequestBody User user) {
+        return userService.findUser(user);
     }
 
     @PostMapping("/users")

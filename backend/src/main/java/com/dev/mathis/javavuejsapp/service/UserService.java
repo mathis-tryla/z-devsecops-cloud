@@ -23,7 +23,7 @@ public class UserService {
     }
 
     @Transactional
-    public User findUserByUsername(@PathVariable String username) { return userRepository.findByUsername(username); }
+    public User findUser(@RequestBody User user) { return userRepository.findUser(user); }
 
     @Transactional
     public User createUser(@RequestBody User newUser) {
