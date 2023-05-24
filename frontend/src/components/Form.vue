@@ -50,8 +50,8 @@ export default {
       return axios.get(url, {
         headers: {
           'Accept': 'application/json'
-        }.then(response => {JSON.stringify(response)})
-      });
+        }
+      }).then(response => {console.log(JSON.stringify(response))});
     },
     getUsers() {
       return axios.get(USER_API_BASE_URL, {
