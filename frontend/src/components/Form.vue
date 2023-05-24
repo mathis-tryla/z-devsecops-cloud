@@ -77,12 +77,12 @@ export default {
       this.getUser(this.username).then((response) => {
         console.log("response = " + JSON.stringify(response));
         var status = response.status;
-        var isUser = (data.status >= 200 && data.status < 400);
+        var isUser = (status >= 200 && status < 400);
         var isEmpty = (this.username == '' || this.password == '');
 
         console.log("isEmpty = " + isEmpty);
         console.log("isUser = " + isUser);
-        
+
         if(!isEmpty && isUser){
           alert("You're signed in!");
         } else {
