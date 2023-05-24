@@ -36,14 +36,4 @@ public class User {
         this.username = username;
         this.password = password;
     }
-
-    public boolean equals(User user) {
-        if (this == user)
-            return true;
-        if (!(user instanceof User))
-            return false;
-        User u = (User) user;
-        return Objects.equals(this.id, u.id) && Objects.equals(this.username, u.username)
-            && Objects.equals(this.password, u.password);
-    }
 }

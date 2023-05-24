@@ -2,14 +2,11 @@ package com.dev.mathis.javavuejsapp.service;
 
 import com.dev.mathis.javavuejsapp.model.User;
 import com.dev.mathis.javavuejsapp.repository.UserRepository;
-
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -26,8 +23,12 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<User> findUserById(@PathVariable Long id) { 
-        return userRepository.findById(id);
+    public User findUserByUsername(@PathVariable String username) { 
+        List<User> users = getUsers();
+        for(User user : users)
+            if(user.getUsername() == username)
+                return user;
+        return null;
     }
 
     @Transactional
