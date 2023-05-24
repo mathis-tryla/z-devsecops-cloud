@@ -45,7 +45,7 @@ export default {
     }
   },
   methods: {
-    getUser(username, password) {
+    getUser(username) {
       const url = USER_API_BASE_URL + '/' + username
       return axios.get(url, {
         headers: {
@@ -74,7 +74,7 @@ export default {
       });
     },
     signIn() {
-      this.getUser(this.username, this.password).then((response) => {
+      this.getUser(this.username).then((response) => {
         console.log("response = " + JSON.stringify(response));
         var isUser = (response.data != "null");
         var isEmpty = (this.username == '' || this.password == '');
