@@ -67,7 +67,6 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t "${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION" \
           ${{ env.FRONTEND }}
 
@@ -79,7 +78,6 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION" \
           ${{ env.BACKEND }}
 
