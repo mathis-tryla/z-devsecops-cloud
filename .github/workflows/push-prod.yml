@@ -13,7 +13,6 @@ env:
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
-  PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   push-images-prod:
@@ -29,14 +28,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - run: touch ${{ github.workspace }}/report_md
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: report_md
+          path: ${{ github.workspace }}/report_md
+
       ## DAST
-      #- name: OWASP ZAP Full Scan
-      #  uses: zaproxy/action-full-scan@v0.4.0
-      #  with:
-      #    target: 'https://front.34.111.30.200.nip.io'
-      #    cmd_options: "-d" #show debug messages
-      #    docker_name: 'owasp/zap2docker-stable'
-      #    allow_issue_writing: false
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'https://front.34.111.30.200.nip.io'
+          cmd_options: "-d -w report_md" #show debug messages
+          docker_name: 'owasp/zap2docker-stable'
+          allow_issue_writing: false
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
@@ -66,9 +72,9 @@ jobs:
             -Dexec.args='${project.version}' \
             --non-recursive \
             exec:exec)
+          echo $MVN_VERSION
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION \
           ${{ env.FRONTEND }}
 
       - name: Build prod backend docker image
@@ -79,8 +85,7 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
-            -t "${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION \
           ${{ env.BACKEND }}
 
       - name: Publish docker images to Google Artifact Registry
