@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.dev.mathis</groupId>
 	<artifactId>backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.3</version>
 	<name>javavuejsapp</name>
 	<description>Zenika internship Mathis Spring Boot + VueJS</description>
 	<properties>
