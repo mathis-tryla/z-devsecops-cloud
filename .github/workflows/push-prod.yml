@@ -5,10 +5,14 @@ on:
     branches: [ "main" ]
 
 env:
+  FRONTEND: ./frontend
+  BACKEND: ./backend
   GKE_CLUSTER: z-devsecops-cluster
   GKE_ZONE: europe-west1-b
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
+  KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
@@ -32,6 +36,7 @@ jobs:
       #    target: 'https://front.34.111.30.200.nip.io'
       #    cmd_options: "-d" #show debug messages
       #    docker_name: 'owasp/zap2docker-stable'
+      #    allow_issue_writing: false
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
@@ -54,6 +59,46 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
 
+      - name: Build prod frontend docker image
+        run: |-
+          MVN_VERSION=$(mvn -q \
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION" \
+          ${{ env.FRONTEND }}
+
+      - name: Build prod backend docker image
+        run: |-
+          MVN_VERSION=$(mvn -q \
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION" \
+          ${{ env.BACKEND }}
+
+      - name: Publish docker images to Google Artifact Registry
+        run: |-
+          FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags)
+          BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags)
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@main
+  
+      - name: Sign images with Google KMS key
+        run: |-
+          MVN_VERSION=$(mvn -q \
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION
+
       - name: Deploy docker images to the GKE cluster in prod
         env:
           MANIFESTS: deployment
@@ -62,7 +107,12 @@ jobs:
           SERVICES: deployment/services
         run: |-
           kubectl apply -f ${{ github.workspace }}/$NAMESPACES/prod.yml
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n env-intern
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n env-intern
+          MVN_VERSION=$(mvn -q \
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          sed -e "s/:latest/:$MVN_VERSION/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n env-intern -f -
+          sed -e "s/:latest/:$MVN_VERSION/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n env-intern -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern

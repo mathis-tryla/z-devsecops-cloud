@@ -82,6 +82,12 @@ jobs:
       - name: Build with Maven
         run: mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 
+      - name: Upgrade maven version
+        run: |-
+          cd ${{ env.BACKEND }} && mvn -q build-helper:parse-version versions:set \
+          -DnewVersion=\${parsedVersion.majorVersion}.\${parsedVersion.minorVersion}.\${parsedVersion.nextIncrementalVersion} \
+          versions:commit
+
       #- name: Lint Code Base
       #  uses: github/super-linter@v5
       #  env:
@@ -113,7 +119,6 @@ jobs:
       - name: Build frontend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
             -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t ${{ github.sha }} \
           ${{ env.FRONTEND }}
@@ -121,7 +126,6 @@ jobs:
       - name: Build backend docker image
         run: |-
           docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:${{ env.PR_NUMBER }}" \
             -t ${{ github.sha }} \
           ${{ env.BACKEND }}
@@ -168,8 +172,8 @@ jobs:
 
       - name: Sign images with Google KMS key
         run: |-
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}
+          cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:${{ env.PR_NUMBER }}
 
       #- name: Add cosign tag to images
       #  run: |-
@@ -187,8 +191,8 @@ jobs:
 
       - name: Verify signed images
         run: |-
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:latest
-          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:latest
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}
+          cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:${{ env.PR_NUMBER }}
 
       - name: Deploy docker images to the GKE cluster in eph
         env:
@@ -199,8 +203,8 @@ jobs:
           EPH_NS : pr-${{ env.PR_NUMBER }}
         run: |-
           kubectl create ns $EPH_NS
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n $EPH_NS
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n $EPH_NS
+          sed -e "s/:latest/:${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n $EPH_NS -f -
+          sed -e "s/:latest/:${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $EPH_NS -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n $EPH_NS
