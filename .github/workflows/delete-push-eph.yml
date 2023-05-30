@@ -9,6 +9,7 @@ env:
   GKE_ZONE: europe-west1-b
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  ARTIFACT_REGISTRY: europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry
   PR_NUMBER: ${{ github.event.number }}
 
 jobs:
@@ -51,3 +52,11 @@ jobs:
           EPH_NS : pr-${{ env.PR_NUMBER }}
         run: |-
           kubectl delete deploy,svc,ingress --all -n $EPH_NS
+          kubectl delete ns $EPH_NS --force
+
+      #- name: Delete frontend GAR images more-than-1-month-dated
+      #  run: |-
+      #    FRONT_IMAGES=$(gcloud container images list-tags ${{ env.ARTIFACT_REGISTRY }}/frontend --format='value(tags)')
+      #    for image in $FRONT_IMAGES; do \
+      #      gcloud container images delete $image --repository=${{ env.ARTIFACT_REGISTRY }} --quiet \
+      #    done
