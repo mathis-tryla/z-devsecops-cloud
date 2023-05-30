@@ -1,14 +1,15 @@
 name: Push to prod
 
 on:
-  pull_request:
-    types: [ closed ]
+  push:
+    branches: [ "main" ]
 
 env:
   GKE_CLUSTER: z-devsecops-cluster
   GKE_ZONE: europe-west1-b
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   push-images-prod:
@@ -65,6 +66,3 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern
-
-      - name: Delete all resources from eph namespace
-        run: kubectl delete deploy,svc --all -n eph

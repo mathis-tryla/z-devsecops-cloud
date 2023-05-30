@@ -14,8 +14,7 @@ env:
   SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
   WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
-  MAJOR: "1"
-  MINOR: "5.1"
+  PR_NUMBER: ${{ github.event.number }}
 
 jobs:
   build-and-push-images-eph:
@@ -30,31 +29,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-
-      #- name: Check if PR exists
-      #  id: check
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #  run: |
-      #    prs=$(gh pr list \
-      #     --repo "${{ env.GITHUB_REPOSITORY }}" \
-      #     --json baseRefName,headRefName \
-      #     --jq '
-      #         map(select(.baseRefName == "main" and .headRefName == "eph"))
-      #         | length
-      #     ')
-      #    if ((prs > 0)); then
-      #     echo "skip=true" >> "$GITHUB_OUTPUT"
-      #    fi
-
-      #- name: Create PR
-      #  if: '!steps.check.outputs.skip'
-      #  run: |-
-      #    gh pr create -B main -H eph --title 'Merge eph into main' \
-      #    --body 'Created by Github action' \
-      #    -a mathis-tryla -r mathis-tryla -l automated-pr
-      #  env:
-      #    GITHUB_TOKEN: ${{ secrets.PAT }}
 
       - name: Cache Maven packages
         uses: actions/cache@v3
@@ -140,7 +114,7 @@ jobs:
         run: |-
           docker build \
             -t ${{ env.ARTIFACT_REGISTRY }}/frontend:latest \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t ${{ github.sha }} \
           ${{ env.FRONTEND }}
 
@@ -148,7 +122,7 @@ jobs:
         run: |-
           docker build \
             -t ${{ env.ARTIFACT_REGISTRY }}/backend:latest \
-            -t "${{ env.ARTIFACT_REGISTRY }}/backend:v${{ env.MAJOR }}.${{ env.MINOR }}" \
+            -t "${{ env.ARTIFACT_REGISTRY }}/backend:${{ env.PR_NUMBER }}" \
             -t ${{ github.sha }} \
           ${{ env.BACKEND }}
 
@@ -222,10 +196,11 @@ jobs:
           DEPLOYMENTS: deployment/dp
           NAMESPACES: deployment/namespaces
           SERVICES: deployment/services
+          EPH_NS : pr-${{ env.PR_NUMBER }}
         run: |-
-          kubectl apply -f ${{ github.workspace }}/$NAMESPACES/eph.yml
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n eph
-          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n eph
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n eph
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n eph
-      #    kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n eph
+          kubectl create ns $EPH_NS
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml -n $EPH_NS
+          kubectl apply -f ${{ github.workspace }}/$DEPLOYMENTS/backend.yml -n $EPH_NS
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n $EPH_NS

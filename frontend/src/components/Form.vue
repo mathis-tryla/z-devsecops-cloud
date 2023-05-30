@@ -51,7 +51,7 @@ export default {
         headers: {
           'Accept': 'application/json'
         }
-      }).then(response => {console.log(JSON.stringify(response))});
+      });
     },
     getUsers() {
       return axios.get(USER_API_BASE_URL, {
@@ -75,7 +75,7 @@ export default {
     },
     signIn() {
       this.getUser(this.username).then((response) => {
-        //console.log("response = " + JSON.stringify(response));
+        console.log("response = " + JSON.stringify(response));
         var isUser = (response.data != "null");
         var isEmpty = (this.username == '' || this.password == '');
 
