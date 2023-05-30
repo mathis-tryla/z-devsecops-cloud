@@ -67,7 +67,7 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION \
           ${{ env.FRONTEND }}
 
       - name: Build prod backend docker image
@@ -78,7 +78,7 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
-            -t "${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION" \
+            -t ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION \
           ${{ env.BACKEND }}
 
       - name: Publish docker images to Google Artifact Registry
