@@ -25,6 +25,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
+        id: auth
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ env.SA }}
+
+      - name: Configure Docker to use the gcloud command-line tool as a credential
+        run: |
+          gcloud config set disable_prompts true
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
+
+      - name: Get the GKE credentials
+        uses: google-github-actions/get-gke-credentials@v1.0.1
+        with:
+          project_id: z-devsecops-cloud
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+
       - name: Delete all resources from eph namespace
         env:
           EPH_NS : pr-${{ env.PR_NUMBER }}
