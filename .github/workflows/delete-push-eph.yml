@@ -1,0 +1,32 @@
+name: Delete EPH resources 
+
+on:
+  pull_request:
+    types: [ closed ]
+
+env:
+  GKE_CLUSTER: z-devsecops-cluster
+  GKE_ZONE: europe-west1-b
+  SA: github-action-sa@z-devsecops-cloud.iam.gserviceaccount.com
+  WORKLOAD_ID_PROVIDER: projects/599822394994/locations/global/workloadIdentityPools/cicd/providers/github
+  PR_NUMBER: ${{ github.event.number }}
+
+jobs:
+  delete-push-eph:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      security-events: write
+      issues: write
+      statuses: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Delete all resources from eph namespace
+        env:
+          EPH_NS : pr-${{ env.PR_NUMBER }}
+        run: |-
+          kubectl delete deploy,svc,ingress --all -n $EPH_NS
