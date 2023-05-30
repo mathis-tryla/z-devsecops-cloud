@@ -67,6 +67,7 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t "${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION" \
           ${{ env.FRONTEND }}
 
@@ -78,13 +79,14 @@ jobs:
             --non-recursive \
             exec:exec)
           docker build \
+            -t "${{ env.ARTIFACT_REGISTRY }}/frontend:${{ env.PR_NUMBER }}" \
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION" \
           ${{ env.BACKEND }}
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags)
-          BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags)
+          FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION)
+          BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION)
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
