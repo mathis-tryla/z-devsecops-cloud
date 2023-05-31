@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
- 
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
         id: auth
@@ -49,7 +49,7 @@ jobs:
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
      
-      - run: touch ${{ github.workspace }}/report_md
+      #- run: touch ${{ github.workspace }}/report_md
   
       #- uses: actions/upload-artifact@v3
       #   with:
