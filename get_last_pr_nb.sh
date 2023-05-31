@@ -6,6 +6,7 @@ for tag in $FRONT_TAGS; do \
     i=$((i+1))
     if [ $i -eq 2 ]
     then
-        exit $tag
+        echo export LAST_PR_NB=$tag
+        break
     fi
 done
