@@ -27,7 +27,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
- 
+
+      - run: touch ${{ github.workspace }}/report_md
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: report_md
+          path: ${{ github.workspace }}/report_md
+
+      ## DAST
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'https://front.34.111.30.200.nip.io'
+          cmd_options: "-d -w report_md" #show debug messages
+          docker_name: 'owasp/zap2docker-stable'
+          allow_issue_writing: false
+
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v0
         id: auth
