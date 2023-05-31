@@ -75,14 +75,15 @@ jobs:
       - name: Build prod frontend docker image
         run: |-
           MVN_VERSION=$(cd backend && mvn -q \
-          -Dexec.executable=echo \
-          -Dexec.args='${project.version}' \
-          --non-recursive \
-          exec:exec)
-          echo $MVN_VERSION
-          docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION \
-          ${{ env.FRONTEND }}
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          chmod +x get_last_pr_nb.sh
+          ./get_last_pr_nb.sh
+          docker tag \
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$? \
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION 
 
       - name: Build prod backend docker image
         run: |-
@@ -91,9 +92,11 @@ jobs:
             -Dexec.args='${project.version}' \
             --non-recursive \
             exec:exec)
-          docker build \
-            -t ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION \
-          ${{ env.BACKEND }}
+          chmod +x get_last_pr_nb.sh
+          ./get_last_pr_nb.sh
+          docker tag \
+            ${{ env.ARTIFACT_REGISTRY }}/backend:$? \
+            ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION 
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
