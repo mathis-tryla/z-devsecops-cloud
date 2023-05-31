@@ -208,3 +208,4 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n $EPH_NS
+          sed -e "s/front./pr-${{ env.PR_NUMBER }}./g" ${{ github.workspace }}/$DEPLOYMENTS/ingress.yml | kubectl apply -n $EPH_NS -f -
