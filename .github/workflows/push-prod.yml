@@ -104,8 +104,13 @@ jobs:
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
-          FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION)
-          BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION)
+          MVN_VERSION=$(cd backend && mvn -q \
+            -Dexec.executable=echo \
+            -Dexec.args='${project.version}' \
+            --non-recursive \
+            exec:exec)
+          docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION
+          docker push ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION
 
       - name: Install Cosign
         uses: sigstore/cosign-installer@main
@@ -137,3 +142,4 @@ jobs:
           sed -e "s/:latest/:$MVN_VERSION/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n env-intern -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern
+          kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n env-intern
