@@ -81,6 +81,8 @@ jobs:
             exec:exec)
           chmod +x get_last_pr_nb.sh
           eval "$(./get_last_pr_nb.sh)"
+          docker pull \
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB
           docker tag \
             ${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB \
             ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION 
@@ -94,6 +96,8 @@ jobs:
             exec:exec)
           chmod +x get_last_pr_nb.sh
           eval "$(./get_last_pr_nb.sh)"
+          docker pull \
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB
           docker tag \
             ${{ env.ARTIFACT_REGISTRY }}/backend:$LAST_PR_NB \
             ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION 
