@@ -51,27 +51,43 @@ jobs:
           create_credentials_file: 'true'
           workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
           service_account: ${{ env.SA }}
-
+        
       - name: Configure Docker to use the gcloud command-line tool as a credential
         run: |
           gcloud config set disable_prompts true
           gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
           gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
-
+        
       - name: Get the GKE credentials
         uses: google-github-actions/get-gke-credentials@v1.0.1
         with:
           project_id: z-devsecops-cloud
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
-
+     
+      - run: touch ${{ github.workspace }}/report_md
+  
+      #- uses: actions/upload-artifact@v3
+      #   with:
+      #     name: report_md
+      #     path: ${{ github.workspace }}/report_md
+  
+      ## DAST
+      #- name: OWASP ZAP Full Scan
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #    target: 'https://front.34.111.30.200.nip.io'
+      #    cmd_options: "-d -w report_md" #show debug messages
+      #    docker_name: 'owasp/zap2docker-stable'
+      #    allow_issue_writing: false
+          
       - name: Build prod frontend docker image
         run: |-
           MVN_VERSION=$(mvn -q \
-            -Dexec.executable=echo \
-            -Dexec.args='${project.version}' \
-            --non-recursive \
-            exec:exec)
+          -Dexec.executable=echo \
+          -Dexec.args='${project.version}' \
+          --non-recursive \
+          exec:exec)
           echo $MVN_VERSION
           docker build \
             -t ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION \
