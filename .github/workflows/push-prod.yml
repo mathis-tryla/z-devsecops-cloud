@@ -74,7 +74,7 @@ jobs:
           
       - name: Build prod frontend docker image
         run: |-
-          MVN_VERSION=$(mvn -q \
+          MVN_VERSION=$(cd backend && mvn -q \
           -Dexec.executable=echo \
           -Dexec.args='${project.version}' \
           --non-recursive \
@@ -105,7 +105,7 @@ jobs:
   
       - name: Sign images with Google KMS key
         run: |-
-          MVN_VERSION=$(mvn -q \
+          MVN_VERSION=$(cd backend && mvn -q \
             -Dexec.executable=echo \
             -Dexec.args='${project.version}' \
             --non-recursive \
