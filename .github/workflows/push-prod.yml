@@ -64,6 +64,13 @@ jobs:
       #    cmd_options: "-d -w report_md" #show debug messages
       #    docker_name: 'owasp/zap2docker-stable'
       #    allow_issue_writing: false
+
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
+        with:
+          java-version: '19'
+          distribution: 'temurin'
+          cache: maven
           
       - name: Build prod frontend docker image
         run: |-
