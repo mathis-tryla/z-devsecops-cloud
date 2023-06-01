@@ -204,7 +204,8 @@ jobs:
           EPH_NS : pr-${{ env.PR_NUMBER }}
         run: |-
           sed -e "s/number/${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$NAMESPACES/eph.yml | kubectl apply -f -
-          sed -e "s/:latest/:${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n $EPH_NS -f -
+          sed -e "s/:latest/:${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml && \
+          sed -e "s/value: https/value: http/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n $EPH_NS -f -
           sed -e "s/:latest/:${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $EPH_NS -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
