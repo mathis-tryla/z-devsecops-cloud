@@ -15,7 +15,7 @@ env:
   KMS: gcpkms://projects/z-devsecops-cloud/locations/europe-west1/keyRings/cosign/cryptoKeys/cosign
 
 jobs:
-  push-images-prod:
+  push-prod:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -48,22 +48,6 @@ jobs:
           project_id: z-devsecops-cloud
           cluster_name: ${{ env.GKE_CLUSTER }}
           location: ${{ env.GKE_ZONE }}
-     
-      #- run: touch ${{ github.workspace }}/report_md
-  
-      #- uses: actions/upload-artifact@v3
-      #   with:
-      #     name: report_md
-      #     path: ${{ github.workspace }}/report_md
-  
-      ## DAST
-      #- name: OWASP ZAP Full Scan
-      #  uses: zaproxy/action-full-scan@v0.4.0
-      #  with:
-      #    target: 'https://front.34.111.30.200.nip.io'
-      #    cmd_options: "-d -w report_md" #show debug messages
-      #    docker_name: 'owasp/zap2docker-stable'
-      #    allow_issue_writing: false
           
       - name: Tag prod frontend docker image
         run: |-
@@ -136,3 +120,18 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n env-intern
           kubectl apply -f ${{ github.workspace }}/$MANIFESTS/ingress.yml -n env-intern
+
+      ## DAST
+      - run: touch ${{ github.workspace }}/dast_prod_report.md && chmod a+rwx ${{ github.workspace }}/dast_prod_report.md
+  
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dast_prod_report
+          path: ${{ github.workspace }}/dast_prod_report.md
+  
+      - name: OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.4.0
+        with:
+          target: 'https://front.34.111.30.200.nip.io'
+          cmd_options: "-d -w dast_prod_report.md"
+          allow_issue_writing: false

@@ -54,6 +54,11 @@ jobs:
           kubectl delete deploy,svc,ingress --all -n $EPH_NS
           kubectl delete ns $EPH_NS --force
 
+      - name: Delete eph dast report artifact 
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: dast_eph_report
+
       #- name: Delete frontend GAR images more-than-1-month-dated
       #  run: |-
       #    FRONT_IMAGES=$(gcloud container images list-tags ${{ env.ARTIFACT_REGISTRY }}/frontend --format='value(tags)')
