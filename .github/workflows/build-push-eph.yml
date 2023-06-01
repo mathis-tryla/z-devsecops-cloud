@@ -222,10 +222,11 @@ jobs:
       - name: OWASP ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.4.0
         with:
-          target: 'http://pr-${{ env.PR_NUMBER }}.34.111.30.200.nip.io'
+          target: https://front.34.111.30.200.nip.io
           cmd_options: "-w report_md"
           docker_name: 'owasp/zap2docker-stable'
           allow_issue_writing: false
+      #    target: 'http://pr-${{ env.PR_NUMBER }}.34.111.30.200.nip.io'
 
       - name: Add DAST report as PR comment
         uses: mshick/add-pr-comment@v2
