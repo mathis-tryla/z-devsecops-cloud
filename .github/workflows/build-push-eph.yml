@@ -199,6 +199,7 @@ jobs:
           DEPLOYMENTS: deployment/dp
           NAMESPACES: deployment/namespaces
           SERVICES: deployment/services
+          INGRESSES: deployment/ingresses
           EPH_NS : pr-${{ env.PR_NUMBER }}
         run: |-
           sed -e "s/number/${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$NAMESPACES/eph.yml | kubectl apply -f -
@@ -207,10 +208,10 @@ jobs:
           sed -e "s/:latest/:pr-${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $EPH_NS -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
-          sed -e "s/host: front./host: pr-${{ env.PR_NUMBER }}./g" ${{ github.workspace }}/$MANIFESTS/ingress.yml | kubectl apply -n $EPH_NS -f -
+          sed -e "s/pr-number/pr-${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $EPH_NS -f -
 
       ## DAST
-      - run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+rwx ${{ github.workspace }}/dast_eph_report.md
+      - run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
   
       - uses: actions/upload-artifact@v3
         with:
