@@ -183,11 +183,6 @@ jobs:
       #    docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
       #    docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
 
-      #- name: Publish docker images to Google Artifact Registry
-      #  run: |-
-      #    FRONT_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags | grep digest:)
-      #    BACK_SHA=$(docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags)
-
       - name: Verify signed images
         run: |-
           cosign verify --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
@@ -200,33 +195,33 @@ jobs:
           NAMESPACES: deployment/namespaces
           SERVICES: deployment/services
           INGRESSES: deployment/ingresses
-          EPH_NS : pr-${{ env.PR_NUMBER }}
+          PR_NB : pr-${{ env.PR_NUMBER }}
         run: |-
           sed -e "s/number/${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$NAMESPACES/eph.yml | kubectl apply -f -
-          sed -e "s/:latest/:pr-${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml && \
-          sed -e "s/value: https/value: http/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n $EPH_NS -f -
-          sed -e "s/:latest/:pr-${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $EPH_NS -f -
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $EPH_NS
-          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $EPH_NS
-          sed -e "s/pr-number/pr-${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $EPH_NS -f -
+          sed -e "s/:latest/:$PR_NB/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml && \
+            sed -e "s/value: https/value: http/g" ${{ github.workspace }}/$DEPLOYMENTS/frontend.yml | kubectl apply -n $PR_NB -f -
+          sed -e "s/:latest/:$PR_NB/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $PR_NB -f -
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $PR_NB
+          kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $PR_NB
+          sed -e "s/pr-number/$PR_NB/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $PR_NB -f -
 
       ## DAST
-      - run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
+      #- run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
   
-      - uses: actions/upload-artifact@v3
-        with:
-          name: dast_eph_report
-          path: ${{ github.workspace }}/dast_eph_report.md
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: dast_eph_report
+      #    path: ${{ github.workspace }}/dast_eph_report.md
   
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: 'http://pr-${{ env.PR_NUMBER }}.34.111.30.200.nip.io'
-          cmd_options: "-d -w dast_eph_report.md"
-          allow_issue_writing: false
+      #- name: OWASP ZAP Full Scan
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #    target: 'http://.pr-${{ env.PR_NUMBER }}.nip.io'
+      #    cmd_options: "-d -w dast_eph_report.md"
+      #    allow_issue_writing: false
 
-      - name: Create PR comment with DAST report
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ env.PR_NUMBER }}
-          body-path: ${{ github.workspace }}/dast_eph_report.md
+      #- name: Create PR comment with DAST report
+      #  uses: peter-evans/create-or-update-comment@v3
+      #  with:
+      #    issue-number: ${{ env.PR_NUMBER }}
+      #    body-path: ${{ github.workspace }}/dast_eph_report.md
