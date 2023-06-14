@@ -10,3 +10,5 @@ frontend/.vscode
 frontend/frontend.iml
 
 deployment/managed-certificate.yml
+
+values.yml

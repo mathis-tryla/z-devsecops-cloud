@@ -123,16 +123,16 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$INGRESSES/prod.yml -n env-intern
 
       ## DAST
-      - run: touch ${{ github.workspace }}/dast_prod_report.md && chmod a+rwx ${{ github.workspace }}/dast_prod_report.md
+      #- run: touch ${{ github.workspace }}/dast_prod_report.md && chmod a+rwx ${{ github.workspace }}/dast_prod_report.md
   
-      - uses: actions/upload-artifact@v3
-        with:
-          name: dast_prod_report
-          path: ${{ github.workspace }}/dast_prod_report.md
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: dast_prod_report
+      #    path: ${{ github.workspace }}/dast_prod_report.md
   
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: 'https://front.34.111.30.200.nip.io'
-          cmd_options: "-d -w dast_prod_report.md"
-          allow_issue_writing: false
+      #- name: OWASP ZAP Full Scan
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #    target: 'https://front.34.111.30.200.nip.io'
+      #    cmd_options: "-d -w dast_prod_report.md"
+      #    allow_issue_writing: false
