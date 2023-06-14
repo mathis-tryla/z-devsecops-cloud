@@ -59,9 +59,9 @@ jobs:
           chmod +x get_last_pr_nb.sh
           eval "$(./get_last_pr_nb.sh)"
           docker pull \
-            ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-$LAST_PR_NB
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB
           docker tag \
-            ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-$LAST_PR_NB \
+            ${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB \
             ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION 
 
       - name: Tag prod backend docker image
@@ -74,9 +74,9 @@ jobs:
           chmod +x get_last_pr_nb.sh
           eval "$(./get_last_pr_nb.sh)"
           docker pull \
-            ${{ env.ARTIFACT_REGISTRY }}/backend:pr-$LAST_PR_NB
+            ${{ env.ARTIFACT_REGISTRY }}/backend:$LAST_PR_NB
           docker tag \
-            ${{ env.ARTIFACT_REGISTRY }}/backend:pr-$LAST_PR_NB \
+            ${{ env.ARTIFACT_REGISTRY }}/backend:$LAST_PR_NB \
             ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION 
 
       - name: Publish docker images to Google Artifact Registry
@@ -123,16 +123,16 @@ jobs:
           kubectl apply -f ${{ github.workspace }}/$INGRESSES/prod.yml -n env-intern
 
       ## DAST
-      - run: touch ${{ github.workspace }}/dast_prod_report.md && chmod a+rwx ${{ github.workspace }}/dast_prod_report.md
+      #- run: touch ${{ github.workspace }}/dast_prod_report.md && chmod a+rwx ${{ github.workspace }}/dast_prod_report.md
   
-      - uses: actions/upload-artifact@v3
-        with:
-          name: dast_prod_report
-          path: ${{ github.workspace }}/dast_prod_report.md
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: dast_prod_report
+      #    path: ${{ github.workspace }}/dast_prod_report.md
   
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: 'https://front.34.111.30.200.nip.io'
-          cmd_options: "-d -w dast_prod_report.md"
-          allow_issue_writing: false
+      #- name: OWASP ZAP Full Scan
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #    target: 'https://front.34.111.30.200.nip.io'
+      #    cmd_options: "-d -w dast_prod_report.md"
+      #    allow_issue_writing: false

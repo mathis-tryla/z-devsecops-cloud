@@ -1,0 +1,9 @@
+{
+    "name": "KEEP_PR_30d_POLICY",
+    "action": {"type": "Keep"},
+    "condition": {
+        "tagState": "tagged",
+        "tagPrefixes": ["pr"],
+        "newerThan": "30d"
+    }
+}
