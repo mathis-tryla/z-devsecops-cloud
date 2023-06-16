@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
   name: frontend
 spec:
   rules:
@@ -23,3 +24,7 @@ spec:
                   number: 8080
             path: /api
             pathType: Prefix
+  tls: # < placing a host in the TLS config will determine what ends up in the cert's subjectAltNames
+    - hosts:
+        - front-pr-number.34.79.214.117.nip.io
+      secretName: myingress-cert # < cert-manager will store the created certificate in this secret.

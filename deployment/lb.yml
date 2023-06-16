@@ -1,0 +1,3 @@
+service:
+  spec:
+    loadBalancerIP: "34.79.214.117"
