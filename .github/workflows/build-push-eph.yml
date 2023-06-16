@@ -203,7 +203,7 @@ jobs:
           sed -e "s/:latest/:$PR_NB/g" ${{ github.workspace }}/$DEPLOYMENTS/backend.yml | kubectl apply -n $PR_NB -f -
           kubectl apply -f ${{ github.workspace }}/$SERVICES/api.yml -n $PR_NB
           kubectl apply -f ${{ github.workspace }}/$SERVICES/frontend.yml -n $PR_NB
-          sed -e "s/pr-number/$PR_NB/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $PR_NB -f -
+          sed -e "s/pr-number/${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $PR_NB -f -
 
       ## DAST
       #- run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
@@ -216,7 +216,7 @@ jobs:
       #- name: OWASP ZAP Full Scan
       #  uses: zaproxy/action-full-scan@v0.4.0
       #  with:
-      #    target: 'http://.pr-${{ env.PR_NUMBER }}.nip.io'
+      #    target: 'http://front-${{ env.PR_NUMBER }}.34.111.30.200.nip.io'
       #    cmd_options: "-d -w dast_eph_report.md"
       #    allow_issue_writing: false
 
