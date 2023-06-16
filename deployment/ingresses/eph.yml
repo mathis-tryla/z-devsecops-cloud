@@ -3,13 +3,10 @@ kind: Ingress
 metadata:
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    traefik.frontend.passHostHeader: "true"
-    traefik.backend.loadbalancer.sticky: "true"
-    kubernetes.io/ingress.global-static-ip-name: frontend
   name: frontend
 spec:
   rules:
-    - host: front-pr-number.34.111.30.200.nip.io
+    - host: front-pr-number.34.79.214.117.nip.io
       http:
         paths:
           - backend:
