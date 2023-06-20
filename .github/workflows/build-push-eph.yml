@@ -50,7 +50,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d
+          args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d --target-reference="eph"
 
       - name: Upload Snyk scan Frontend results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
@@ -63,9 +63,9 @@ jobs:
         # TODO: comment the line below in production
         continue-on-error: true
         env:
-      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d
+          args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d --target-reference="eph"
 
       - name: Upload Snyk scan Backend results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
