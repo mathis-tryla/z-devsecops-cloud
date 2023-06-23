@@ -1,0 +1,11 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: cert-manager-cosign
+  namespace: cert-manager
+spec:
+  images:
+    - glob: quay.io/jetstack/cert-manager-*
+  authorities:
+    - static:
+        action: pass

@@ -1,0 +1,11 @@
+apiVersion: policy.sigstore.dev/v1beta1
+kind: ClusterImagePolicy
+metadata:
+  name: private-signed-images-cip
+  namespace: env-intern
+spec:
+  images:
+  - glob: "europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry/**"
+  authorities:
+  - key:
+      kms: ${{ env.KMS }}/cryptoKeyVersions/1
