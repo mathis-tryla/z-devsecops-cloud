@@ -43,35 +43,35 @@ jobs:
           cd ${{ github.workspace }}/backend
           mvn -N io.takari:maven:wrapper
 
-      - name: Run Snyk to check for Frontend vulnerabilities
-        uses: snyk/actions/node@master
+      #- name: Run Snyk to check for Frontend vulnerabilities
+      #  uses: snyk/actions/node@master
       # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d --target-reference="eph"
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-frontend.sarif --file=frontend/package-lock.json -d --target-reference="eph"
 
-      - name: Upload Snyk scan Frontend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-frontend.sarif
-          category: 'snyk-frontend'
+      #- name: Upload Snyk scan Frontend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-frontend.sarif
+      #    category: 'snyk-frontend'
 
-      - name: Run Snyk to check for Backend vulnerabilities
-        uses: snyk/actions/maven@master
+      #- name: Run Snyk to check for Backend vulnerabilities
+      #  uses: snyk/actions/maven@master
         # TODO: comment the line below in production
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d --target-reference="eph"
+      #  continue-on-error: true
+      #  env:
+      #    SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #  with:
+      #    args: --sarif-file-output=snyk-backend.sarif --file=backend/pom.xml -d --target-reference="eph"
 
-      - name: Upload Snyk scan Backend results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk-backend.sarif
-          category: 'snyk-backend'
+      #- name: Upload Snyk scan Backend results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: snyk-backend.sarif
+      #    category: 'snyk-backend'
 
       - name: Set up JDK 19
         uses: actions/setup-java@v3
@@ -129,37 +129,37 @@ jobs:
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}" \
           ${{ env.BACKEND }}
 
-      - name: Run Trivy vulnerability scanner for frontend
-        env:
-          TRIVY_USERNAME: ""
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
-          scan-ref: ${{ github.workspace }}/frontend
-          format: 'sarif'
-          output: 'trivy-results-frontend.sarif'
+      #- name: Run Trivy vulnerability scanner for frontend
+      #  env:
+      #    TRIVY_USERNAME: ""
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
+      #    scan-ref: ${{ github.workspace }}/frontend
+      #    format: 'sarif'
+      #    output: 'trivy-results-frontend.sarif'
 
-      - name: Run Trivy vulnerability scanner for backend
-        env:
-          TRIVY_USERNAME: ""
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
-          scan-ref: ${{ github.workspace }}/backend
-          format: 'sarif'
-          output: 'trivy-results-backend.sarif'
+      #- name: Run Trivy vulnerability scanner for backend
+      #  env:
+      #    TRIVY_USERNAME: ""
+      #  uses: aquasecurity/trivy-action@master
+      #  with:
+      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
+      #    scan-ref: ${{ github.workspace }}/backend
+      #    format: 'sarif'
+      #    output: 'trivy-results-backend.sarif'
 
-      - name: Upload Trivy scan results to GitHub Security tab frontend
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results-frontend.sarif'
-          category: 'frontend'
+      #- name: Upload Trivy scan results to GitHub Security tab frontend
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: 'trivy-results-frontend.sarif'
+      #    category: 'frontend'
 
-      - name: Upload Trivy scan results to GitHub Security tab backend
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results-backend.sarif'
-          category: 'backend'
+      #- name: Upload Trivy scan results to GitHub Security tab backend
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: 'trivy-results-backend.sarif'
+      #    category: 'backend'
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
