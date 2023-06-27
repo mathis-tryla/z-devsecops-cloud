@@ -46,7 +46,7 @@ jobs:
       - name: Run Snyk to check for Frontend vulnerabilities
         uses: snyk/actions/node@master
       # TODO: comment the line below in production
-        continue-on-error: true
+      #  continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
@@ -61,7 +61,7 @@ jobs:
       - name: Run Snyk to check for Backend vulnerabilities
         uses: snyk/actions/maven@master
         # TODO: comment the line below in production
-        continue-on-error: true
+      #  continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
