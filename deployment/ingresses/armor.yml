@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+  name: frontend-armor
+spec:
+  rules:
+    - host: armor.35.241.63.42.nip.io
+      http:
+        paths:
+          - backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+          - backend:
+              service:
+                name: api
+                port:
+                  number: 8080
+            path: /api
+            pathType: Prefix

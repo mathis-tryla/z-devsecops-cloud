@@ -1,0 +1,7 @@
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: backendconfig-devsecops-security-policy
+spec:
+  securityPolicy:
+    name: "devsecops-security-policy"
