@@ -36,3 +36,37 @@ mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 ```
 
 #### 3) Google Cloud authentication
+
+```
+gcloud artifacts repositories set-cleanup-policies projects/z-devsecops-cloud/locations/europe-west1/repositories/z-devsecops-registry --project=z-devsecops-cloud --location=europe-west1 --policy=cleanup-policy.json
+```
+
+### How does the CD work ?
+
+
+
+### How to monitor our cluster ?
+The final step of the project was to setup a monitoring system so we can get metrics from our Kubernetes cluster. We chose to query data with Prometheus in order to display them into Grafana dashboards. Once connected to the k8s cluster, you can get access to the dashboards with the following commands :
+
+##### Query Trivy Operator metrics in Prometheus
+```sh
+kubens monitoring
+kubectl port-forward pod/prometheus 9090
+```
+Then navigate to http://localhost:9090/graph and you can retrieve some security information by typing the following linees to the input query:
+Total vulnerabilities found in our cluster
+```sh
+sum(trivy_image_vulnerabilities)
+```
+Total misconfiguration identified in your cluster
+```sh
+sum(trivy_resource_configaudits)
+```
+
+##### Set up Grafana dashboard for Trivy Operator metrics
+```sh
+kubens monitoring
+kubectl port-forward service/prom-grafana 3000:80
+```
+Then navigate to http://localhost:3000, click on "Dashboards" -> "Browse" -> "New" -> "Import" -> paste the ID of the Aqua Trivy Dashboard: 17813.
+Once pasted, you should see the Trivy Operator Dashboard as part of your Dashboard list.
