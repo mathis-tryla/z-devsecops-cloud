@@ -1,9 +1,19 @@
-{
-    "name": "KEEP_PR_30d_POLICY",
-    "action": {"type": "Keep"},
-    "condition": {
-        "tagState": "tagged",
-        "tagPrefixes": ["pr"],
-        "newerThan": "30d"
+[
+    {
+        "name": "DELETE_PR_30d_POLICY",
+        "action": {"type": "DELETE"},
+        "condition": {
+            "tagState": "tagged",
+            "tagPrefixes": ["pr"],
+            "olderThan": "30d"
+        }
+    },
+    {
+        "name": "KEEP_SHA256_10d_POLICY",
+        "action": {"type": "KEEP"},
+        "condition": {
+            "tagPrefixes": ["sha256"],
+            "newerThan": "10d"
+        }
     }
-}
+]
