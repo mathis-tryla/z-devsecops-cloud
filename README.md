@@ -44,7 +44,7 @@ We store the link of the Google Artifact Registry repository in the `env.ARTIFAC
 
 
 #### 4) Google Cloud authentication
-Before building our docker image, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
+Before building our Docker images, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
 Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials so we can carry out actions on our k8s cluster later.
 > **Note**: see https://github.com/marketplace/actions/authenticate-to-google-cloud#setup to set up the workload identity federation provided by Google Cloud
 
@@ -111,7 +111,25 @@ This tool will perform penetration testing on our application and generate a mar
 The content of this file will be pasted as a comment of our Pull Request.
 
 
-## Setting clean-up policies 
+### How does the CD work ?
+Once a Pull Request is merged to `main` branch, the *push-prod* job is launched. Here is what this job is composed of.
+
+#### 1) Google Cloud authentication
+Before building our Docker images, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
+Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials so we can carry out actions on our k8s cluster later.
+> **Note**: see https://github.com/marketplace/actions/authenticate-to-google-cloud#setup to set up the workload identity federation provided by Google Cloud
+
+
+#### 2) Tagging frontend and backend images
+Before publishing Docker images to our Google Artifact Registry repository, we tag our images with the Maven verssion that we have incremented during step 4 of the *How does the CI work?* part, using the following commands:
+```sh
+docker tag \
+${{ env.ARTIFACT_REGISTRY }}/<folder>:$LAST_PR_NB \
+${{ env.ARTIFACT_REGISTRY }}/<folder>:$MVN_VERSION 
+```
+
+
+## Setting clean-up policies
 Google Cloud Platform allows us to clean Google Artifact Registry images as to conditions that we have to define in a JSON file.
 As part of our project, we decide to :
 1) Delete pr-tagged images older than 30 days
@@ -125,12 +143,9 @@ projects/<project_name>/locations/<location>/repositories/<repository> \
 --policy=<cleanup-policy-file_path>
 ```
 
-### How does the CD work ?
-
-
 
 ## Monitoring
-The final step of the project was to set up a monitoring system so we can get metrics from our Kubernetes cluster. We chose to query data with Prometheus in order to display them into Grafana dashboards. Once connected to the k8s cluster, you can get access to the dashboards with the following commands :
+The final step of the project was to set up a monitoring system, so we can get metrics from our Kubernetes cluster. We chose to query data with Prometheus in order to display them into Grafana dashboards. Once connected to the k8s cluster, you can get access to the dashboards with the following commands :
 
 ### Query Trivy Operator metrics in Prometheus
 ```sh
