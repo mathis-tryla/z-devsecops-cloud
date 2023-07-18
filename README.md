@@ -29,16 +29,100 @@ In each of Snyk-detected vulnerabilities, you'll see following informations abou
 - overview
 - remediation
 
+
 #### 2) Java build
 The next step is to specify the **Java** version you want to run your app on and building the application with **Maven**:
-```
+```sh
 mvn -B --update-snapshots package --file ${{ env.BACKEND }}/pom.xml
 ```
 
-#### 3) Google Cloud authentication
 
+#### 3) Create a Google Artifact Registry repository
+As our application will be containerized with Docker, we have to store our images in a Google Artifact Registry repository.
+One folder is dedicated to frontend images and another for backend ones.
+We store the link of the Google Artifact Registry repository in the `env.ARTIFACT_REGISTRY` variable.
+
+
+#### 4) Google Cloud authentication
+Before building our docker image, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
+Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials so we can carry out actions on our k8s cluster later.
+> **Note**: see https://github.com/marketplace/actions/authenticate-to-google-cloud#setup to set up the workload identity federation provided by Google Cloud
+
+
+#### 5) Build Docker images
+We can now build our Docker frontend and backend images, with the following commands:
+```sh
+docker build \
+-t "${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}" \
+${{ env.FRONTEND }}
 ```
-gcloud artifacts repositories set-cleanup-policies projects/z-devsecops-cloud/locations/europe-west1/repositories/z-devsecops-registry --project=z-devsecops-cloud --location=europe-west1 --policy=cleanup-policy.json
+```sh
+docker build \
+-t "${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}" \
+${{ env.BACKEND }}
+```
+
+Both images will be stored in the artifact registry repository that we've created during the previous part.
+
+
+#### 6) Container images vulnerability scanner with Trivy
+Once our Docker images are built, we can scan them with Trivy, so we can upload vulnerabilities to GitHub Security Tab of our repository.
+The scans' outputs will be stored in a sarif-formatted file.  
+
+
+#### 7) Publish Docker images to Google Artifact Registry
+When the previous scans are done, we push both Docker images to our Google Artifact Registry repository,
+with the following commands:
+```sh
+docker push ${{ env.ARTIFACT_REGISTRY }}/frontend --all-tags
+docker push ${{ env.ARTIFACT_REGISTRY }}/backend --all-tags
+```
+
+
+#### 8) Sign images with Google Key Management Service key
+Thanks to Cosign and Google KMS we sign our images, so we can prove the integrity and the trust-worthy source of the images,
+with the following commands:
+````sh
+cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
+cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
+````
+
+The `env.KMS` variable is formatted like:
+`gcpkms://projects/<gcp_project_name>/locations/<location>>/keyRings/<keyRing_name>/cryptoKeys/<cryptoKeys_name>` 
+
+>**Note**: pr-`${{ env.PR_NUMBER }}` tag means that it is an ephemeral image used to deploy an ephemeral environment.
+
+
+#### 9) Deploy Docker images to the GKE Cluster
+Finally, we deploy our ephemeral environment supporting our application based on the ephemeral Docker images signed previously, using Kubernetes.
+Here are the steps to perform this:
+1) Create an ephemeral namespace named `pr-${{ env.PR_NUMBER }}`
+2) Create the frontend deployment with the `pr-${{ env.PR_NUMBER }}` tagged frontend image in the ephemeral namespace
+3) Create the backend deployment with the `pr-${{ env.PR_NUMBER }}` tagged backend image in the ephemeral namespace
+4) Create the API service in the ephemeral namespace
+5) Create the frontend service in the ephemeral namespace
+6) Create the ingress in the ephemeral namespace, so we can expose our app
+
+
+#### 10) DAST with OWASP ZAP
+The previous step generated a http url making our application externally accessible.
+Now we pass this url in a DAST (Dynamic Application Security Testing) tool called OWASP ZAP.
+This tool will perform penetration testing on our application and generate a markdown file.
+The content of this file will be pasted as a comment of our Pull Request.
+
+
+## Setting clean-up policies 
+Google Cloud Platform allows us to clean Google Artifact Registry images as to conditions that we have to define in a JSON file.
+As part of our project, we decide to :
+1) Delete pr-tagged images older than 30 days
+2) Keep images sha256-prefixed images newer than 10 days
+
+In order to apply these policies, we run this command:
+```
+gcloud artifacts repositories set-cleanup-policies \
+projects/<project_name>/locations/<location>/repositories/<repository> \
+--project=<project_name> --location=<location> \
+--policy=<cleanup-policy-file_path>
 ```
 
 ### How does the CD work ?
