@@ -45,25 +45,25 @@ gcloud artifacts repositories set-cleanup-policies projects/z-devsecops-cloud/lo
 
 
 
-### How to monitor our cluster ?
-The final step of the project was to setup a monitoring system so we can get metrics from our Kubernetes cluster. We chose to query data with Prometheus in order to display them into Grafana dashboards. Once connected to the k8s cluster, you can get access to the dashboards with the following commands :
+## Monitoring
+The final step of the project was to set up a monitoring system so we can get metrics from our Kubernetes cluster. We chose to query data with Prometheus in order to display them into Grafana dashboards. Once connected to the k8s cluster, you can get access to the dashboards with the following commands :
 
-##### Query Trivy Operator metrics in Prometheus
+### Query Trivy Operator metrics in Prometheus
 ```sh
 kubens monitoring
 kubectl port-forward pod/prometheus 9090
 ```
-Then navigate to http://localhost:9090/graph and you can retrieve some security information by typing the following linees to the input query:
-Total vulnerabilities found in our cluster
+Then navigate to http://localhost:9090/graph, and you can retrieve some security information by typing the following linees to the input query:
+##### Total vulnerabilities found in our cluster
 ```sh
 sum(trivy_image_vulnerabilities)
 ```
-Total misconfiguration identified in your cluster
+##### Total misconfiguration identified in your cluster
 ```sh
 sum(trivy_resource_configaudits)
 ```
 
-##### Set up Grafana dashboard for Trivy Operator metrics
+### Set up Grafana dashboard for Trivy Operator metrics
 ```sh
 kubens monitoring
 kubectl port-forward service/prom-grafana 3000:80
