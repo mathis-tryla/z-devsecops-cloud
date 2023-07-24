@@ -9,11 +9,12 @@
         }
     },
     {
-        "name": "KEEP_SHA256_10d_POLICY",
-        "action": {"type": "KEEP"},
+        "name": "DELETE_SHA256_30d_POLICY",
+        "action": {"type": "DELETE"},
         "condition": {
+            "tagState": "tagged",
             "tagPrefixes": ["sha256"],
-            "newerThan": "10d"
+            "olderThan": "30d"
         }
     }
 ]
