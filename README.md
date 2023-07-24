@@ -124,9 +124,53 @@ Then we configure Docker to use the gcloud command-line tool as a credential, an
 Before publishing Docker images to our Google Artifact Registry repository, we tag our images with the Maven verssion that we have incremented during step 4 of the *How does the CI work?* part, using the following commands:
 ```sh
 docker tag \
-${{ env.ARTIFACT_REGISTRY }}/<folder>:$LAST_PR_NB \
-${{ env.ARTIFACT_REGISTRY }}/<folder>:$MVN_VERSION 
+${{ env.ARTIFACT_REGISTRY }}/frontend:$LAST_PR_NB \
+${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION 
 ```
+
+
+#### 3) Publish Docker images to Google Artifact Registry
+When the previous images are tagged, we push both Docker images to our Google Artifact Registry repository,
+with the following commands:
+```sh
+docker push ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION
+docker push ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION
+```
+
+
+#### 4) Sign images with Google Key Management Service key
+Thanks to Cosign and Google KMS we sign our images, so we can prove the integrity and the trust-worthy source of the images,
+with the following commands:
+````sh
+cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:$MVN_VERSION
+cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:$MVN_VERSION
+````
+
+The `env.KMS` variable is formatted like:
+`gcpkms://projects/<gcp_project_name>/locations/<location>>/keyRings/<keyRing_name>/cryptoKeys/<cryptoKeys_name>`
+
+>**Note**: `$MVN_VERSION` tag means that it is a production-tagged image used to update the production environment.
+
+
+#### 5) Deploy Docker images to the GKE Cluster
+Finally, we deploy our ephemeral environment supporting our application based on the ephemeral Docker images signed previously, using Kubernetes.
+Here are the steps to perform this:
+1) Create a production namespace named `env-intern` if it doesn't already exist
+2) Update the `$MVN_VERSION` so we can deploy the latest prod-tagged images 
+3) Create the frontend deployment with the `$MVN_VERSION` tagged frontend image in the production namespace
+4) Create the backend deployment with the `$MVN_VERSION` tagged backend image in the production namespace
+5) Create the API service in the production namespace
+6) Create the frontend service in the production namespace
+7) Create the ingress in the production namespace, so we can expose our app
+
+
+#### 6) DAST with OWASP ZAP
+The previous step generated a http url making our application externally accessible.
+Now we pass this url in a DAST (Dynamic Application Security Testing) tool called OWASP ZAP.
+This tool will perform penetration testing on our application and generate a markdown file.
+The content of this file will be pasted as a comment of our Pull Request.
+
+
 
 
 ## Setting clean-up policies
