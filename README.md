@@ -14,6 +14,7 @@ Once a Pull Request is opened or synchronized, the *build-and-push-eph* job is l
 Here is what this job is composed of.
 
 #### 1) SAST with Snyk
+
 The first step of the *build-and-push-eph* job is scanning the vulnerabilities from the code source with an open-source Static Application Security Testing (SAST) tool called **Snyk**. First from the frontend folder, then from the backend one. Then we upload the sarif-formated results of scanning to our repository's GitHub Security tab in order to get a user-friendly view of all the scanned vulnerabilities, as below :
 
 
