@@ -12,3 +12,10 @@ frontend/frontend.iml
 deployment/managed-certificate.yml
 
 values.yml
+
+get_last_pr_nb.sh
+
+terraform/.terraform.lock.hcl
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup

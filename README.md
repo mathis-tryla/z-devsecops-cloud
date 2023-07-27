@@ -6,7 +6,7 @@ Zenika Lille Mathis stage
 
 ## CI/CD
 
-The project is tested, compiled and deployed through a CI/CD pipeline implemented on Github Actions.
+The project is tested, compiled and deployed through a CI/CD pipeline implemented on GitHub Actions.
 
 ### How does the CI work ?
 
@@ -14,15 +14,15 @@ Once a Pull Request is opened or synchronized, the *build-and-push-eph* job is l
 Here is what this job is composed of.
 
 #### 1) SAST with Snyk
-The first step of the *build-and-push-eph* job is scanning the vulnerabilities from the code source with an open-source Static Application Security Testing (SAST) tool called **Snyk**. First from the frontend folder, then from the backend one. Then we upload the sarif-formated results of scanning to our repository's Github Security tab in order to get a user-friendly view of all of the scanned vulnerabilities, as below :
+The first step of the *build-and-push-eph* job is scanning the vulnerabilities from the code source with an open-source Static Application Security Testing (SAST) tool called **Snyk**. First from the frontend folder, then from the backend one. Then we upload the sarif-formated results of scanning to our repository's GitHub Security tab in order to get a user-friendly view of all the scanned vulnerabilities, as below :
 
-```
+
 ![Github Security tab](/Users/zenika/Desktop/Capture d’écran 2023-07-11 à 11.07.17.png?raw=true "Github Security tab preview")
-```
 
-> **Note**: you have to make your repository public so you can upload your sarif files to Github Security tab
 
-In each of Snyk-detected vulnerabilities, you'll see following informations about it:
+> **Note**: you have to make your repository public, so you can upload your sarif files to GitHub Security tab
+
+In each of Snyk-detected vulnerabilities, you'll see following information about it:
 - name
 - source file
 - ID weekness
@@ -45,7 +45,7 @@ We store the link of the Google Artifact Registry repository in the `env.ARTIFAC
 
 #### 4) Google Cloud authentication
 Before building our Docker images, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
-Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials so we can carry out actions on our k8s cluster later.
+Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials, so we can carry out actions on our k8s cluster later.
 > **Note**: see https://github.com/marketplace/actions/authenticate-to-google-cloud#setup to set up the workload identity federation provided by Google Cloud
 
 
@@ -116,7 +116,7 @@ Once a Pull Request is merged to `main` branch, the *push-prod* job is launched.
 
 #### 1) Google Cloud authentication
 Before building our Docker images, we have to authenticate us to Google Cloud through the workload identity federation, by specifying the workload identity provider and the service account.
-Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials so we can carry out actions on our k8s cluster later.
+Then we configure Docker to use the gcloud command-line tool as a credential, and get the GKE credentials, so we can carry out actions on our k8s cluster later.
 > **Note**: see https://github.com/marketplace/actions/authenticate-to-google-cloud#setup to set up the workload identity federation provided by Google Cloud
 
 
@@ -156,7 +156,7 @@ The `env.KMS` variable is formatted like:
 Finally, we deploy our ephemeral environment supporting our application based on the ephemeral Docker images signed previously, using Kubernetes.
 Here are the steps to perform this:
 1) Create a production namespace named `env-intern` if it doesn't already exist
-2) Update the `$MVN_VERSION` so we can deploy the latest prod-tagged images 
+2) Update the `$MVN_VERSION` so we can deploy the latest production tagged images 
 3) Create the frontend deployment with the `$MVN_VERSION` tagged frontend image in the production namespace
 4) Create the backend deployment with the `$MVN_VERSION` tagged backend image in the production namespace
 5) Create the API service in the production namespace
