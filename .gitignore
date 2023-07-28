@@ -18,6 +18,8 @@ get_last_pr_nb.sh
 # Local .terraform directories
 **/terraform/.terraform/*
 
+**/terraform/.terraform.*
+
 # .tfstate files
 terraform/*.tfstate
 terraform/*.tfstate.*

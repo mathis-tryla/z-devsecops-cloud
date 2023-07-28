@@ -1,5 +1,13 @@
+variable "gke_cluster_name" {
+  default = "tf-gke-cluster"
+}
+
+variable "gke_node_pool_name" {
+  default = "tf-gke-node-pool"
+}
+
 variable "gke_machine_type" {
-  default = "f1-micro"
+  default = "e2-standard-2"
 }
 
 variable "project_id" {
@@ -7,7 +15,7 @@ variable "project_id" {
 }
 
 variable "project_name" {
-  default = "Demo Terraform k8s GKE traefik"
+  default = "Terraform k8s GKE"
 }
 
 /*variable "gcp_billing_account_name" {
@@ -19,7 +27,7 @@ variable "region" {
 }
 
 variable "zone" {
-  default = "europe-west9-b"
+  default = "europe-west9-a"
 }
 
 variable "network_name" {
