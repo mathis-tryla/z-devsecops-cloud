@@ -1,4 +1,4 @@
-name: tfsec-pr-commenter
+name: IaC scanning
 on:
   pull_request:
     types: [ opened, synchronize ]
@@ -38,7 +38,7 @@ jobs:
         id: checkov
         uses: bridgecrewio/checkov-action@master
         with:
-          directory: ${{ github.workspace }}/terraform
+          directory: terraform
           framework: terraform
 
   terrascan:

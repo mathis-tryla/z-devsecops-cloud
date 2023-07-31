@@ -206,22 +206,22 @@ jobs:
           sed -e "s/pr-number/${{ env.PR_NUMBER }}/g" ${{ github.workspace }}/$INGRESSES/eph.yml | kubectl apply -n $PR_NB -f -
 
       ## DAST
-      - run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
+      #- run: touch ${{ github.workspace }}/dast_eph_report.md && chmod a+wx ${{ github.workspace }}/dast_eph_report.md
   
-      - uses: actions/upload-artifact@v3
-        with:
-          name: dast_eph_report
-          path: ${{ github.workspace }}/dast_eph_report.md
+      #- uses: actions/upload-artifact@v3
+      #  with:
+      #    name: dast_eph_report
+      #    path: ${{ github.workspace }}/dast_eph_report.md
   
-      - name: OWASP ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.4.0
-        with:
-          target: 'https://front-${{ env.PR_NUMBER }}.34.79.214.117.nip.io'
-          cmd_options: "-d -w dast_eph_report.md"
-          allow_issue_writing: false
+      #- name: OWASP ZAP Full Scan
+      #  uses: zaproxy/action-full-scan@v0.4.0
+      #  with:
+      #    target: 'https://front-${{ env.PR_NUMBER }}.34.79.214.117.nip.io'
+      #    cmd_options: "-d -w dast_eph_report.md"
+      #    allow_issue_writing: false
 
-      - name: Create PR comment with DAST report
-        uses: peter-evans/create-or-update-comment@v3
-        with:
-          issue-number: ${{ env.PR_NUMBER }}
-          body-path: ${{ github.workspace }}/dast_eph_report.md
+      #- name: Create PR comment with DAST report
+      #  uses: peter-evans/create-or-update-comment@v3
+      #  with:
+      #    issue-number: ${{ env.PR_NUMBER }}
+      #    body-path: ${{ github.workspace }}/dast_eph_report.md
