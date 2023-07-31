@@ -32,6 +32,12 @@ jobs:
   checkov:
     name: checkov scanning
     runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
 
     steps:
       - name: Clone repo
@@ -43,6 +49,15 @@ jobs:
         with:
           directory: terraform
           framework: terraform
+          soft_fail: true
+          output_format: cli,sarif
+          output_file_path: console,checkov-results.sarifv
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v2
+        if: success() || failure()
+        with:
+          sarif_file: checkov-results.sarif
 
   terrascan:
     runs-on: ubuntu-latest
