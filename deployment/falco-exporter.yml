@@ -1,0 +1,11 @@
+serviceMonitor:
+  # Enable the deployment of a Service Monitor for the Prometheus Operator.
+  enabled: true
+
+grafanaDashboard:
+  enabled: true
+  namespace: falco
+
+# Create PrometheusRules for alerting on priority events
+prometheusRules:
+  enabled: true
