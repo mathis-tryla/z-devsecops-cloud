@@ -43,9 +43,9 @@ resource "google_compute_backend_service" "ingress-http" {
   session_affinity = "NONE"
   timeout_sec      = "60"
 
-  backend {
+  /*backend {
     group = module.workers.instance_group
-  }
+  }*/
 
   health_checks = [google_compute_health_check.ingress.self_link]
 

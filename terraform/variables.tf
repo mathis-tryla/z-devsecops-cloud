@@ -33,3 +33,9 @@ variable "network_name" {
 variable "artifact_registry" {
   default = "europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry"
 }
+
+/*variable "k8s_credentials" {
+  type = string
+  sensitive = true
+  description = "Kubernetes credentials"
+}*/
