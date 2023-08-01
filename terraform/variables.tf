@@ -18,10 +18,6 @@ variable "project_name" {
   default = "Terraform k8s GKE"
 }
 
-/*variable "gcp_billing_account_name" {
-  default = "Mein Rechnungskonto"
-}*/
-
 variable "region" {
   default = "europe-west9"
 }
