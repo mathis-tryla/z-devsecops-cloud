@@ -36,12 +36,6 @@ jobs:
           workload_identity_provider: ${{ env.WORKLOAD_ID_PROVIDER }}
           service_account: ${{ env.SA }}
 
-      - name: Configure Docker to use the gcloud command-line tool as a credential
-        run: |
-          gcloud config set disable_prompts true
-          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
-          gcloud --quiet auth configure-docker europe-west1-docker.pkg.dev
-
       - name: Get the GKE credentials
         uses: google-github-actions/get-gke-credentials@v1.0.1
         with:
