@@ -1,11 +1,12 @@
 resource "kubernetes_service" "frontend" {
   metadata {
-    name = "frontend"
+    name      = "frontend"
     namespace = "production"
   }
   spec {
     selector = {
-      app = kubernetes_deployment.frontend.spec.0.template.0.metadata[0].labels.type
+      app  = kubernetes_deployment.frontend.spec.0.template.0.metadata[0].labels.app
+      type = kubernetes_deployment.frontend.spec.0.template.0.metadata[0].labels.type
     }
     port {
       port        = 80
@@ -15,17 +16,18 @@ resource "kubernetes_service" "frontend" {
     type = "ClusterIP"
   }
 
-  depends_on = [ google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production ]
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production]
 }
 
 resource "kubernetes_service" "api" {
   metadata {
-    name = "api"
+    name      = "api"
     namespace = "production"
   }
   spec {
     selector = {
-      app = kubernetes_deployment.backend.spec.0.template.0.metadata[0].labels.type
+      app  = kubernetes_deployment.backend.spec.0.template.0.metadata[0].labels.app
+      type = kubernetes_deployment.backend.spec.0.template.0.metadata[0].labels.type
     }
     port {
       port        = 8080
@@ -35,6 +37,6 @@ resource "kubernetes_service" "api" {
     type = "ClusterIP"
   }
 
-  depends_on = [ google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production ]
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production]
 }
 

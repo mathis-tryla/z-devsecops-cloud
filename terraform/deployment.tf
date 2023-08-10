@@ -1,6 +1,6 @@
 resource "kubernetes_deployment" "backend" {
   metadata {
-    name = "backend"
+    name      = "backend"
     namespace = "production"
     labels = {
       app = "devsecops"
@@ -11,25 +11,25 @@ resource "kubernetes_deployment" "backend" {
     replicas = 1
     selector {
       match_labels = {
-        app = "devsecops"
+        app  = "devsecops"
         type = "api"
       }
     }
     template {
       metadata {
         labels = {
-          app = "devsecops"
+          app  = "devsecops"
           type = "api"
         }
       }
       spec {
         container {
-          name  = "backend"
-          image = "${var.artifact_registry}/backend:latest"
+          name              = "backend"
+          image             = "${var.artifact_registry}/backend:latest"
           image_pull_policy = "Always"
 
           port {
-            name = "http"
+            name           = "http"
             container_port = 8080
           }
         }
@@ -37,12 +37,12 @@ resource "kubernetes_deployment" "backend" {
     }
   }
 
-  depends_on = [ google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production ]
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production]
 }
 
 resource "kubernetes_deployment" "frontend" {
   metadata {
-    name = "frontend"
+    name      = "frontend"
     namespace = "production"
     labels = {
       app = "devsecops"
@@ -53,29 +53,29 @@ resource "kubernetes_deployment" "frontend" {
     replicas = 1
     selector {
       match_labels = {
-        app = "devsecops"
+        app  = "devsecops"
         type = "front"
       }
     }
     template {
       metadata {
         labels = {
-          app = "devsecops"
+          app  = "devsecops"
           type = "front"
         }
       }
       spec {
         container {
-          name  = "frontend"
-          image = "${var.artifact_registry}/frontend:latest"
+          name              = "frontend"
+          image             = "${var.artifact_registry}/frontend:latest"
           image_pull_policy = "Always"
           env {
-            name = "BASE_URL"
+            name  = "BASE_URL"
             value = "https://api:8080"
           }
 
           port {
-            name = "main"
+            name           = "main"
             container_port = 3000
           }
         }
@@ -83,5 +83,5 @@ resource "kubernetes_deployment" "frontend" {
     }
   }
 
-  depends_on = [ google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production ]
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes, kubernetes_namespace.production]
 }
