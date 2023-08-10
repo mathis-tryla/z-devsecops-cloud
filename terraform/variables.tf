@@ -18,10 +18,6 @@ variable "project_name" {
   default = "Terraform k8s GKE"
 }
 
-/*variable "gcp_billing_account_name" {
-  default = "Mein Rechnungskonto"
-}*/
-
 variable "region" {
   default = "europe-west9"
 }
@@ -37,3 +33,9 @@ variable "network_name" {
 variable "artifact_registry" {
   default = "europe-west1-docker.pkg.dev/z-devsecops-cloud/z-devsecops-registry"
 }
+
+/*variable "k8s_credentials" {
+  type = string
+  sensitive = true
+  description = "Kubernetes credentials"
+}*/

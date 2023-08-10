@@ -129,37 +129,37 @@ jobs:
             -t "${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}" \
           ${{ env.BACKEND }}
 
-      #- name: Run Trivy vulnerability scanner for frontend
-      #  env:
-      #    TRIVY_USERNAME: ""
-      #  uses: aquasecurity/trivy-action@master
-      #  with:
-      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
-      #    scan-ref: ${{ github.workspace }}/frontend
-      #    format: 'sarif'
-      #    output: 'trivy-results-frontend.sarif'
+      - name: Run Trivy vulnerability scanner for frontend
+        env:
+          TRIVY_USERNAME: ""
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
+          scan-ref: ${{ github.workspace }}/frontend
+          format: 'sarif'
+          output: 'trivy-results-frontend.sarif'
 
-      #- name: Run Trivy vulnerability scanner for backend
-      #  env:
-      #    TRIVY_USERNAME: ""
-      #  uses: aquasecurity/trivy-action@master
-      #  with:
-      #    image-ref: ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
-      #    scan-ref: ${{ github.workspace }}/backend
-      #    format: 'sarif'
-      #    output: 'trivy-results-backend.sarif'
+      - name: Run Trivy vulnerability scanner for backend
+        env:
+          TRIVY_USERNAME: ""
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
+          scan-ref: ${{ github.workspace }}/backend
+          format: 'sarif'
+          output: 'trivy-results-backend.sarif'
 
-      #- name: Upload Trivy scan results to GitHub Security tab frontend
-      #  uses: github/codeql-action/upload-sarif@v2
-      #  with:
-      #    sarif_file: 'trivy-results-frontend.sarif'
-      #    category: 'frontend'
+      - name: Upload Trivy scan results to GitHub Security tab frontend
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results-frontend.sarif'
+          category: 'frontend'
 
-      #- name: Upload Trivy scan results to GitHub Security tab backend
-      #  uses: github/codeql-action/upload-sarif@v2
-      #  with:
-      #    sarif_file: 'trivy-results-backend.sarif'
-      #    category: 'backend'
+      - name: Upload Trivy scan results to GitHub Security tab backend
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results-backend.sarif'
+          category: 'backend'
 
       - name: Publish docker images to Google Artifact Registry
         run: |-
@@ -173,15 +173,6 @@ jobs:
         run: |-
           cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}
           cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}
-
-      #- name: Add cosign tag to images
-      #  run: |-
-      #    FRONT_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/frontend:latest)
-      #    BACK_SHA=$(cosign triangulate ${{ env.ARTIFACT_REGISTRY }}/backend:latest)
-      #    FRONT_SHA=$(cut -d':' -f2 <<< $FRONT_SHA)
-      #    BACK_SHA=$(cut -d':' -f2 <<< $BACK_SHA)
-      #    docker tag ${{ env.ARTIFACT_REGISTRY }}/frontend:latest ${{ env.ARTIFACT_REGISTRY }}/frontend:$FRONT_SHA
-      #    docker tag ${{ env.ARTIFACT_REGISTRY }}/backend:latest ${{ env.ARTIFACT_REGISTRY }}/backend:$BACK_SHA
 
       - name: Verify signed images
         run: |-
