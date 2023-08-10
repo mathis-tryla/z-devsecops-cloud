@@ -7,6 +7,14 @@ resource "google_container_cluster" "primary" {
   # node pool and immediately delete it.
   remove_default_node_pool = true
   initial_node_count       = 1
+
+  pod_security_policy_config {
+    enabled = "true"
+  }
+
+  resource_labels = {
+    "env" = "staging"
+  }
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
@@ -17,11 +25,22 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
 
   node_config {
     preemptible  = true
-    machine_type = var.gke_machine_type
-
-    oauth_scopes = [
+    machine_type = "${var.gke_machine_type}"
+    metadata = {
+      disable-legacy-endpoints = true
+    }
+    workload_metadata_config {
+      node_metadata = "SECURE"
+    }
+    oauth_scopes    = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
+    image_type = "COS"
+  }
+
+  management {
+    auto_repair = true
+    auto_upgrade = true
   }
 }
 
