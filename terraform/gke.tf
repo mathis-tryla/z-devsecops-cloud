@@ -1,6 +1,6 @@
 resource "google_container_cluster" "primary" {
-  name     = "${var.gke_cluster_name}"
-  location = "${var.zone}"
+  name     = var.gke_cluster_name
+  location = var.zone
 
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
@@ -18,8 +18,8 @@ resource "google_container_cluster" "primary" {
 }
 
 resource "google_container_node_pool" "primary_preemptible_nodes" {
-  name       = "${var.gke_node_pool_name}"
-  location   = "${var.zone}"
+  name       = var.gke_node_pool_name
+  location   = var.zone
   cluster    = google_container_cluster.primary.name
   node_count = 1
 
@@ -45,7 +45,7 @@ resource "google_container_node_pool" "primary_preemptible_nodes" {
 }
 
 resource "kubernetes_namespace" "production" {
-  depends_on = [ google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes ]
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes]
 
   metadata {
     labels = {
@@ -53,5 +53,17 @@ resource "kubernetes_namespace" "production" {
     }
 
     name = "production"
+  }
+}
+
+resource "kubernetes_namespace" "traefik" {
+  depends_on = [google_container_cluster.primary, google_container_node_pool.primary_preemptible_nodes]
+
+  metadata {
+    labels = {
+      type = "traefik"
+    }
+
+    name = "traefik"
   }
 }
