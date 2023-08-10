@@ -15,10 +15,7 @@ Here is what this job is composed of.
 
 #### 1) SAST with Snyk
 
-The first step of the *build-and-push-eph* job is scanning the vulnerabilities from the code source with an open-source Static Application Security Testing (SAST) tool called **Snyk**. First from the frontend folder, then from the backend one. Then we upload the sarif-formated results of scanning to our repository's GitHub Security tab in order to get a user-friendly view of all the scanned vulnerabilities, as below :
-
-
-![Github Security tab](/Users/zenika/Desktop/Capture d’écran 2023-07-11 à 11.07.17.png?raw=true "Github Security tab preview")
+The first step of the *build-and-push-eph* job is scanning the vulnerabilities from the code source with an open-source Static Application Security Testing (SAST) tool called **Snyk**. First from the frontend folder, then from the backend one. Then we upload the sarif-formated results of scanning to our repository's GitHub Security tab in order to get a user-friendly view of all the scanned vulnerabilities.
 
 
 > **Note**: you have to make your repository public, so you can upload your sarif files to GitHub Security tab
@@ -59,7 +56,7 @@ ${{ env.FRONTEND }}
 ```
 ```sh
 docker build \
--t "${{ env.ARTIFACT_REGISTRY }}/frontend:pr-${{ env.PR_NUMBER }}" \
+-t "${{ env.ARTIFACT_REGISTRY }}/backend:pr-${{ env.PR_NUMBER }}" \
 ${{ env.BACKEND }}
 ```
 
@@ -89,7 +86,7 @@ cosign sign --yes --key ${{ env.KMS }} ${{ env.ARTIFACT_REGISTRY }}/backend:pr-$
 ````
 
 The `env.KMS` variable is formatted like:
-`gcpkms://projects/<gcp_project_name>/locations/<location>>/keyRings/<keyRing_name>/cryptoKeys/<cryptoKeys_name>` 
+`gcpkms://projects/<gcp_project_name>/locations/<location>/keyRings/<keyRing_name>/cryptoKeys/<cryptoKeys_name>` 
 
 >**Note**: pr-`${{ env.PR_NUMBER }}` tag means that it is an ephemeral image used to deploy an ephemeral environment.
 
@@ -156,7 +153,7 @@ The `env.KMS` variable is formatted like:
 #### 5) Deploy Docker images to the GKE Cluster
 Finally, we deploy our ephemeral environment supporting our application based on the ephemeral Docker images signed previously, using Kubernetes.
 Here are the steps to perform this:
-1) Create a production namespace named `env-intern` if it doesn't already exist
+1) Create a production namespace if it doesn't already exist
 2) Update the `$MVN_VERSION` so we can deploy the latest production tagged images 
 3) Create the frontend deployment with the `$MVN_VERSION` tagged frontend image in the production namespace
 4) Create the backend deployment with the `$MVN_VERSION` tagged backend image in the production namespace
